@@ -13,7 +13,25 @@
     "experimentalDecorators": true,
     "importHelpers": true,
     "target": "ES2022",
-    "module": "preserve"
+    "module": "preserve",
+    "baseUrl": "./",
+    "paths": {
+      // Cho các module/service cốt lõi, dùng chung toàn ứng dụng
+      "@core/*": ["src/app/core/*"],
+
+      // Cho các component/pipe/directive dùng chung
+      "@shared/*": ["src/app/shared/*"],
+
+      // Cho các file môi trường
+      "@env/*": ["src/environments/*"],
+
+      // Cho các module tính năng
+      "@features/*": ["src/app/features/*"],
+
+      // Cho các dtos
+      "@dtos/*": ["src/dto/*"],
+
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

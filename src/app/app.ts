@@ -1,19 +1,21 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { NGXLogger } from 'ngx-logger';
+import { RouterModule } from '@angular/router';
+import { HeaderComponent } from './shared/header/header';
+import { FooterComponent } from './shared/footer/footer';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: `
-    <h1>{{ title() }}</h1>
-    
-    <router-outlet></router-outlet>
-  `,
-  //templateUrl: './app.html',
-  styleUrls: ['./app.scss'] // để đúng file của component, không phải styles.scss toàn cục
+  imports: [
+    RouterModule,
+    HeaderComponent,
+    FooterComponent,
+  ],
+  templateUrl: './app.html',
 })
-export class App {
-  protected readonly title = signal('FE.Ecommerce');
+export class MainLayoutComponent {
+  protected readonly title = signal('Ecommerce');
+
+  constructor(private logger: NGXLogger) { }
 }
-  

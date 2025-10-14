@@ -1,0 +1,342 @@
+<!-- app/shared/header/header.html -->
+<header class="bg-white shadow-lg sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo -->
+      <a routerLink="/" class="flex items-center space-x-2 group" (click)="closeMenus()">
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center transform group-hover:scale-110 transition-transform duration-300"
+        >
+          <span class="text-white text-xl font-bold">S</span>
+        </div>
+        <span
+          class="text-2xl font-bold bg-gradient-to-r from-primary-600 to-primary-800 bg-clip-text text-transparent hidden sm:block"
+        >
+          ShopEcomere
+        </span>
+      </a>
+
+      <!-- Search Bar (Desktop) -->
+      <div class="hidden md:flex flex-1 max-w-md mx-8">
+        <div class="relative w-full">
+          <input
+            type="text"
+            placeholder="Tìm kiếm sản phẩm..."
+            class="w-full pl-12 pr-4 py-2.5 border-2 border-gray-200 rounded-full focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+          />
+          <mat-icon
+            class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+          >
+            search
+          </mat-icon>
+        </div>
+      </div>
+
+      <!-- Navigation -->
+      <nav class="hidden lg:flex items-center space-x-8">
+        <a
+          routerLink="/"
+          routerLinkActive="text-primary-600 font-semibold"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="relative text-gray-700 hover:text-primary-600 font-medium transition-colors duration-300 group"
+        >
+          Trang chủ
+          <span
+            class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-primary-800 group-hover:w-full transition-all duration-300"
+          ></span>
+        </a>
+        <a
+          routerLink="/products"
+          routerLinkActive="text-primary-600 font-semibold"
+          class="relative text-gray-700 hover:text-primary-600 font-medium transition-colors duration-300 group"
+        >
+          Sản phẩm
+          <span
+            class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-primary-800 group-hover:w-full transition-all duration-300"
+          ></span>
+        </a>
+        <a
+          routerLink="/about"
+          routerLinkActive="text-primary-600 font-semibold"
+          class="relative text-gray-700 hover:text-primary-600 font-medium transition-colors duration-300 group"
+        >
+          Giới thiệu
+          <span
+            class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-primary-800 group-hover:w-full transition-all duration-300"
+          ></span>
+        </a>
+        <a
+          routerLink="/contact"
+          routerLinkActive="text-primary-600 font-semibold"
+          class="relative text-gray-700 hover:text-primary-600 font-medium transition-colors duration-300 group"
+        >
+          Liên hệ
+          <span
+            class="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-primary-600 to-primary-800 group-hover:w-full transition-all duration-300"
+          ></span>
+        </a>
+      </nav>
+
+      <!-- Right Actions -->
+      <div class="flex items-center space-x-6 ml-2">
+        <!-- Cart -->
+        <a routerLink="/cart" class="relative group" (click)="closeMenus()">
+          <mat-icon class="text-gray-700 hover:text-primary-600 transition-colors">
+            shopping_cart
+          </mat-icon>
+          <span
+            class="absolute -top-2 -right-2 bg-secondary-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-semibold"
+          >
+            3
+          </span>
+        </a>
+
+        <!-- User Menu (when logged in) -->
+        <div *ngIf="isLoggedIn$ | async; else loginButton" class="relative">
+          <!-- Desktop: Avatar with dropdown -->
+          <button
+            (click)="toggleUserMenu()"
+            class="hidden lg:flex items-center space-x-2 focus:outline-none group"
+          >
+            <!-- Avatar -->
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md group-hover:shadow-lg transform group-hover:scale-105 transition-all duration-300"
+            >
+              {{ getInitials((userName$ | async) || '') }}
+            </div>
+            <mat-icon
+              class="text-gray-600 transition-transform duration-300"
+              [class.rotate-180]="isUserMenuOpen"
+            >
+              expand_more
+            </mat-icon>
+          </button>
+
+          <!-- Mobile/Tablet: Avatar only (no dropdown) -->
+          <div class="lg:hidden">
+            <div
+              class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center text-white font-semibold text-sm shadow-md"
+            >
+              {{ getInitials((userName$ | async) || '') }}
+            </div>
+          </div>
+
+          <!-- Dropdown Menu (Desktop only) -->
+          <div
+            *ngIf="isUserMenuOpen"
+            class="hidden lg:block absolute right-0 mt-2 w-56 bg-white rounded-lg shadow-xl border border-gray-100 py-2 z-50 animate-fade-in"
+          >
+            <div class="px-4 py-3 border-b border-gray-100">
+              <p class="text-sm text-gray-500">Xin chào,</p>
+              <p class="text-base font-semibold text-gray-800 truncate">
+                {{ userName$ | async }}
+              </p>
+            </div>
+            <a
+              routerLink="/profile"
+              (click)="closeMenus()"
+              class="flex items-center px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+            >
+              <mat-icon class="mr-3 text-gray-500">person</mat-icon>
+              <span>Tài khoản của tôi</span>
+            </a>
+            <a
+              routerLink="/orders"
+              (click)="closeMenus()"
+              class="flex items-center px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+            >
+              <mat-icon class="mr-3 text-gray-500">receipt_long</mat-icon>
+              <span>Đơn hàng</span>
+            </a>
+            <a
+              routerLink="/wishlist"
+              (click)="closeMenus()"
+              class="flex items-center px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+            >
+              <mat-icon class="mr-3 text-gray-500">favorite</mat-icon>
+              <span>Yêu thích</span>
+            </a>
+            <div class="border-t border-gray-100 mt-2 pt-2">
+              <button
+                (click)="logout()"
+                class="w-full flex items-center px-4 py-2.5 text-red-600 hover:bg-red-50 transition-colors"
+              >
+                <mat-icon class="mr-3">logout</mat-icon>
+                <span>Đăng xuất</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login Button (when not logged in) -->
+        <ng-template #loginButton>
+          <a
+            routerLink="/login"
+            (click)="closeMenus()"
+            class="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 px-6 py-2.5 text-white rounded-full font-medium shadow-button hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center space-x-2"
+          >
+            <mat-icon>account_circle</mat-icon>
+            <span class="hidden sm:inline">Đăng nhập</span>
+          </a>
+        </ng-template>
+
+        <!-- Mobile Menu Button -->
+        <button
+          (click)="toggleMobileMenu()"
+          class="lg:hidden text-gray-600 hover:text-primary-600 transition-colors focus:outline-none"
+        >
+          <mat-icon>{{ isMobileMenuOpen ? 'close' : 'menu' }}</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Search -->
+  <div class="md:hidden px-4 pb-3 pt-1">
+    <div class="relative">
+      <input
+        type="text"
+        placeholder="Tìm kiếm..."
+        class="w-full pl-12 pr-4 py-2 border-2 border-gray-200 rounded-full focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-200 transition-all"
+      />
+      <mat-icon
+        class="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+      >
+        search
+      </mat-icon>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div
+    *ngIf="isMobileMenuOpen"
+    class="lg:hidden border-t border-gray-100 bg-white shadow-lg animate-slide-down"
+  >
+    <nav class="px-4 py-4 space-y-1">
+      <a
+        routerLink="/"
+        routerLinkActive="bg-primary-50 text-primary-600 font-semibold"
+        [routerLinkActiveOptions]="{ exact: true }"
+        (click)="closeMenus()"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <mat-icon class="mr-3">home</mat-icon>
+        <span>Trang chủ</span>
+      </a>
+      <a
+        routerLink="/products"
+        routerLinkActive="bg-primary-50 text-primary-600 font-semibold"
+        (click)="closeMenus()"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <mat-icon class="mr-3">shopping_bag</mat-icon>
+        <span>Sản phẩm</span>
+      </a>
+      <a
+        routerLink="/about"
+        routerLinkActive="bg-primary-50 text-primary-600 font-semibold"
+        (click)="closeMenus()"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <mat-icon class="mr-3">info</mat-icon>
+        <span>Giới thiệu</span>
+      </a>
+      <a
+        routerLink="/contact"
+        routerLinkActive="bg-primary-50 text-primary-600 font-semibold"
+        (click)="closeMenus()"
+        class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+      >
+        <mat-icon class="mr-3">mail</mat-icon>
+        <span>Liên hệ</span>
+      </a>
+
+      <!-- Mobile User Menu (when logged in) -->
+      <div *ngIf="isLoggedIn$ | async" class="pt-3 mt-3 border-t border-gray-200">
+        <div class="px-4 py-2 mb-2">
+          <p class="text-xs text-gray-500">Tài khoản</p>
+          <p class="text-sm font-semibold text-gray-800">
+            {{ userName$ | async }}
+          </p>
+        </div>
+        <a
+          routerLink="/profile"
+          (click)="closeMenus()"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+        >
+          <mat-icon class="mr-3">person</mat-icon>
+          <span>Tài khoản của tôi</span>
+        </a>
+        <a
+          routerLink="/orders"
+          (click)="closeMenus()"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+        >
+          <mat-icon class="mr-3">receipt_long</mat-icon>
+          <span>Đơn hàng</span>
+        </a>
+        <a
+          routerLink="/wishlist"
+          (click)="closeMenus()"
+          class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
+        >
+          <mat-icon class="mr-3">favorite</mat-icon>
+          <span>Yêu thích</span>
+        </a>
+        <button
+          (click)="logout()"
+          class="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-2"
+        >
+          <mat-icon class="mr-3">logout</mat-icon>
+          <span>Đăng xuất</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<!-- Overlay for mobile menu and desktop user menu -->
+<div
+  *ngIf="isMobileMenuOpen"
+  (click)="closeMenus()"
+  class="fixed inset-0 bg-black bg-opacity-25 z-40 lg:hidden"
+></div>
+
+<!-- Overlay for desktop user menu only -->
+<div
+  *ngIf="isUserMenuOpen"
+  (click)="closeMenus()"
+  class="hidden lg:block fixed inset-0 z-40"
+></div>
+
+<style>
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-down {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fade-in 0.2s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out;
+  }
+</style>
