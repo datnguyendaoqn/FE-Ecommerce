@@ -6,6 +6,7 @@ import { HomeComponent } from './features/home/home'; //
 import { ErrorComponent } from './shared/error/error';
 import { MainLayoutComponent } from './app';
 import { CartComponent } from '@features/cart/cart';
+import { ContactComponent } from '@features/contact/contact';
 
 export const routes: Routes = [
   {
@@ -14,6 +15,7 @@ export const routes: Routes = [
     children: [
       { path: '', component: HomeComponent }, //  Trang chủ
       { path: 'about', component: AboutComponent },
+      { path: 'contact', component: ContactComponent },
       { path: 'error', component: ErrorComponent },
       { path: 'login', component: LoginComponent },
       { path: 'register', component: RegisterComponent },
