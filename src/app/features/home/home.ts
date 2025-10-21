@@ -1,61 +1,37 @@
 import { Component } from '@angular/core';
-import { CurrencyPipe } from '@angular/common';
+import { CommonModule,CurrencyPipe } from '@angular/common';
+import { RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-home',
   standalone:true,
-  imports: [CurrencyPipe],
+  imports: [CommonModule,RouterModule,CurrencyPipe],
   templateUrl: './home.html',
 })
 export class HomeComponent {
+  // 🔹 Mock dữ liệu hero section
+  hero = {
+    title: 'Khám phá bộ sưu tập Thu Đông 2025',
+    subtitle: 'Phong cách hiện đại, chất lượng đỉnh cao',
+    image: 'assets/hero-banner.jpg',
+    ctaText: 'Mua ngay',
+    ctaLink: '/shop'
+  };
+
+  // 🔹 Mock danh mục sản phẩm
   categories = [
-    {
-      name: 'Thời trang nam',
-      description: 'Phong cách và năng động',
-      imageUrl: '/assets/images/categories/men-fashion.jpg',
-    },
-    {
-      name: 'Thời trang nữ',
-      description: 'Thanh lịch và hiện đại',
-      imageUrl: '/assets/images/categories/women-fashion.jpg',
-    },
-    {
-      name: 'Giày dép',
-      description: 'Thoải mái và bền bỉ',
-      imageUrl: '/assets/images/categories/shoes.jpg',
-    },
-    {
-      name: 'Phụ kiện',
-      description: 'Tôn lên cá tính riêng',
-      imageUrl: '/assets/images/categories/accessories.jpg',
-    },
+    { name: 'Áo Nam', image: 'assets/categories/shirt-men.jpg' },
+    { name: 'Quần Nam', image: 'assets/categories/pants-men.jpg' },
+    { name: 'Áo Khoác', image: 'assets/categories/jacket-men.jpg' },
+    { name: 'Phụ kiện', image: 'assets/categories/accessories.jpg' },
   ];
 
+  // 🔹 Mock sản phẩm nổi bật
   featuredProducts = [
-    {
-      name: 'Áo Thun Nam Cotton',
-      price: 199000,
-      imageUrl: '/assets/images/products/tshirt-men.jpg',
-    },
-    {
-      name: 'Váy Nữ Dáng Suông',
-      price: 349000,
-      imageUrl: '/assets/images/products/dress-women.jpg',
-    },
-    {
-      name: 'Giày Sneaker Trắng',
-      price: 499000,
-      imageUrl: '/assets/images/products/sneaker.jpg',
-    },
-    {
-      name: 'Túi Xách Da Nữ',
-      price: 599000,
-      imageUrl: '/assets/images/products/handbag.jpg',
-    },
+    { name: 'Áo Thun Basic', price: 299000, image: 'assets/products/shirt1.jpg' },
+    { name: 'Quần Jean Slim Fit', price: 499000, image: 'assets/products/jean1.jpg' },
+    { name: 'Áo Khoác Bomber', price: 799000, image: 'assets/products/jacket1.jpg' },
+    { name: 'Giày Sneaker Trắng', price: 899000, image: 'assets/products/shoes1.jpg' },
   ];
-
-  addToCart(product: any) {
-    console.log('Đã thêm sản phẩm vào giỏ hàng:', product.name);
-  }
 }
