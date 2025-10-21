@@ -1,4 +1,114 @@
-<div>
-  <h1 (click)="onClickSuccess()">home works!</h1>
-  <!-- Chỉ có nội dung trang chủ -->
-</div>
+<!-- =======================
+  HERO SECTION
+======================= -->
+<section
+  class="relative bg-gradient-to-b from-blue-900 via-blue-800 to-blue-600 text-white py-32 text-center overflow-hidden"
+>
+  <div class="max-w-3xl mx-auto px-4 relative z-10">
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-4">
+      Chào Mừng Đến Với <span class="text-orange-400">ShopEcomere</span>
+    </h1>
+    <p class="text-lg opacity-90 mb-6">
+      Trải nghiệm mua sắm hiện đại, dễ dàng và nhanh chóng với hàng nghìn sản phẩm chất lượng.
+    </p>
+    <button
+      class="bg-gradient-to-r from-blue-500 to-orange-500 px-8 py-3 rounded-xl font-semibold hover:opacity-90 transition"
+    >
+      Khám phá ngay
+    </button>
+  </div>
+
+  <!-- Hiệu ứng nền -->
+  <div class="absolute top-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+  <div class="absolute bottom-0 right-0 w-60 h-60 bg-orange-400/20 rounded-full blur-3xl"></div>
+</section>
+
+<!-- =======================
+  PRODUCT CATEGORIES
+======================= -->
+<section class="bg-gradient-to-b from-blue-50 to-amber-50 py-20">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-10">
+      Danh Mục Sản Phẩm Nổi Bật
+    </h2>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div
+        *ngFor="let category of categories"
+        class="bg-white rounded-2xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition p-4 cursor-pointer"
+      >
+        <img
+          [src]="category.imageUrl"
+          [alt]="category.name"
+          class="w-full h-44 object-cover rounded-xl"
+        />
+        <h3 class="mt-4 text-lg font-semibold text-gray-800">
+          {{ category.name }}
+        </h3>
+        <p class="text-sm text-gray-500">{{ category.description }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================
+  FEATURED PRODUCTS
+======================= -->
+<section class="py-20 bg-white">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <h2 class="text-3xl md:text-4xl font-bold text-gray-800 mb-10">
+      Sản Phẩm Nổi Bật
+    </h2>
+
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-8">
+      <div
+        *ngFor="let product of featuredProducts"
+        class="bg-gradient-to-b from-blue-50 to-white rounded-2xl shadow-md hover:shadow-xl p-4 transition transform hover:-translate-y-1"
+      >
+        <img
+          [src]="product.imageUrl"
+          [alt]="product.name"
+          class="w-full h-52 object-cover rounded-xl"
+        />
+        <h3 class="mt-4 font-semibold text-gray-800">{{ product.name }}</h3>
+        <p class="text-blue-600 font-bold mt-1">
+          {{ product.price | currency: 'VND' }}
+        </p>
+        <button
+          (click)="addToCart(product)"
+          class="mt-3 w-full bg-gradient-to-r from-blue-600 to-orange-500 text-white py-2 rounded-xl font-medium hover:opacity-90 transition"
+        >
+          Thêm vào giỏ hàng
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =======================
+  CTA SECTION
+======================= -->
+<section
+  class="py-24 text-center bg-gradient-to-r from-blue-700 to-orange-500 text-white"
+>
+  <div class="max-w-3xl mx-auto px-6">
+    <h2 class="text-3xl md:text-4xl font-extrabold mb-4">
+      Gia Nhập Cộng Đồng ShopEcomere
+    </h2>
+    <p class="text-lg mb-6 opacity-90">
+      Cùng hàng ngàn khách hàng trải nghiệm hệ sinh thái mua sắm thông minh và nhận ưu đãi độc quyền mỗi tuần.
+    </p>
+    <div class="flex justify-center gap-4 flex-wrap">
+      <button
+        class="bg-white text-blue-700 hover:bg-gray-200 px-8 py-3 rounded-xl font-semibold transition"
+      >
+        Đăng ký ngay
+      </button>
+      <button
+        class="border border-white text-white px-8 py-3 rounded-xl font-semibold hover:bg-white hover:text-blue-700 transition"
+      >
+        Tìm hiểu thêm
+      </button>
+    </div>
+  </div>
+</section>
