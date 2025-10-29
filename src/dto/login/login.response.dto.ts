@@ -1,5 +1,11 @@
+import { ApiResponseDto } from "@dtos/api/api.response.dto";
+
 export interface LoginResponseDto {
-    user: { id: string; name: string; email: string } | null;
-    token: string | null;
-    loggedIn: boolean;
+    user: { name: string; email: string } | null;
+    accessToken: string;
+    refreshToken: string;
+}
+
+export interface LoginApiResponseDto extends ApiResponseDto {
+    data: LoginResponseDto
 }

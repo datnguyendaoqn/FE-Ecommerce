@@ -15,6 +15,35 @@
 
       <!-- Form -->
       <form [formGroup]="form" (ngSubmit)="onRegister()" class="space-y-6">
+        <!-- Username -->
+        <div>
+          <label for="username" class="block text-sm font-medium text-gray-700 mb-2">
+            Tên đăng nhập
+          </label>
+          <div class="relative">
+            <mat-icon class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+              >person</mat-icon
+            >
+            <input
+              id="username"
+              type="text"
+              formControlName="username"
+              placeholder="Nhập tên đăng nhập"
+              class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
+            />
+          </div>
+
+          @if (form.controls['username'].touched && form.controls['username'].invalid) {
+          <p class="text-red-500 text-sm mt-1">
+            @if (form.controls['username'].errors?.['required']) { Vui lòng nhập tên đăng nhập. }
+            @else if (form.controls['username'].errors?.['minlength']) { Tên đăng nhập phải có ít
+            nhất 4 ký tự. }
+            @else if (form.controls['username'].errors?.['pattern']) {Tên đăng nhập không được chứa khoảng trắng }
+
+          </p>
+          }
+        </div>
+
         <!-- Email -->
         <div>
           <label for="email" class="block text-sm font-medium text-gray-700 mb-2"> Email </label>
@@ -53,8 +82,7 @@
 
           @if (form.controls['hoTen'].errors?.['minlength']) {
           <p class="text-red-500 text-sm mt-1">Mật khẩu phải có ít nhất 6 ký</p>
-          tự. } 
-          @if (form.controls['hoTen'].touched && form.controls['hoTen'].invalid) {
+          tự. } @if (form.controls['hoTen'].touched && form.controls['hoTen'].invalid) {
           <p class="text-sm text-red-500 mt-1">Vui lòng nhập tên của bạn</p>
           }
         </div>
@@ -87,6 +115,7 @@
             (form.controls['password'].errors?.['minlength']) { Mật khẩu phải có ít nhất 6 ký tự. }
             @else if (form.controls['password'].errors?.['pattern']) { Mật khẩu phải có ít nhất 1
             chữ in hoa và 1 chữ số. }
+            
           </p>
           }
         </div>
@@ -116,8 +145,8 @@
           @if (form.controls['rePassword'].touched && form.controls['rePassword'].invalid) {
           <p class="text-red-500 text-sm mt-1">
             @if (form.controls['rePassword'].errors?.['required']) { Mật khẩu là bắt buộc. } 
-            @else if (form.controls['rePassword'].errors?.['minlength']) { Mật khẩu phải có ít nhất 6 ký tự. } 
-            @else if (form.controls['rePassword'].errors?.['pattern']) { Mật khẩu phải có ít nhất 1 chữ in hoa và 1 chữ số. }
+            @else if (form.controls['rePassword'].errors?.['minlength']) { Mật khẩu phải có ít nhất 6 ký tự. }
+            @else if (form.controls['rePassword'].errors?.['pattern']) { Mật khẩu phải có ítnhất 1 chữ in hoa và 1 chữ số. }
           </p>
           } @if (!passwordsMatchValidator()) {
           <p class="text-red-500 text-sm mt-1">Mật khẩu nhập lại không trùng khớp</p>

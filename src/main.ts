@@ -3,15 +3,23 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { provideHttpClient } from '@angular/common/http';
 import { enviroment } from './enviroments/enviroment';
-import { enableProdMode, importProvidersFrom, isDevMode } from '@angular/core';
-import { LoggerModule, NgxLoggerLevel } from 'ngx-logger';
+import { enableProdMode, importProvidersFrom, inject, isDevMode } from '@angular/core';
+import { LoggerModule, NGXLogger, NgxLoggerLevel } from 'ngx-logger';
 import { DatePipe } from '@angular/common';
 import { AppComponent } from './app/app.component';
 import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { rootReducers } from './app/store/root.reducer';
 import { provideToastr } from 'ngx-toastr';
-import { BrowserAnimationsModule, provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { initAxios } from './configs/axiosInstance';
+
+
+const initAxiosFactory = () => {
+  const logger = inject(NGXLogger);
+  initAxios(logger);
+  return true;
+};
 
 // Bật chế độ production => tắt các debug log , tôi ưu hiệu suất
 if (enviroment.production) {
@@ -33,7 +41,7 @@ bootstrapApplication(AppComponent, {
     })),
   provideStore(rootReducers),
   provideStoreDevtools({ maxAge: 25, logOnly: !isDevMode() }),
-  provideAnimations(),
+  provideAnimationsAsync(),
   provideToastr({
     timeOut: 3000,              // thời gian tự tắt (ms)
     positionClass: 'toast-top-right', // vị trí (xem list bên dưới)
@@ -42,6 +50,9 @@ bootstrapApplication(AppComponent, {
     progressAnimation: 'decreasing', // kiểu progress
     easeTime: 300,              // thời gian animation
     newestOnTop: true,          // hiện toast mới nhất lên đầu
-  })
+  }),
+
+  { provide: 'AXIOS_INIT', useFactory: initAxiosFactory },
+
   ],
 }).catch(err => console.error(err));
