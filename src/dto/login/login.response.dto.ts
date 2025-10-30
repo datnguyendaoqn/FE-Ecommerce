@@ -1,7 +1,9 @@
 import { ApiResponseDto } from "@dtos/api/api.response.dto";
 
 export interface LoginResponseDto {
-    user: { name: string; email: string } | null;
+    fullName:string,
+    role: string,
+    id:string,
     accessToken: string;
     refreshToken: string;
 }

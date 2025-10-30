@@ -72,17 +72,17 @@
               >contacts</mat-icon
             >
             <input
-              id="hoTen"
-              type="hoTen"
-              formControlName="hoTen"
+              id="fullName"
+              type="fullName"
+              formControlName="fullName"
               placeholder="Nhập tên của bạn"
               class="w-full pl-12 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-primary-500 focus:ring-4 focus:ring-primary-100 transition-all"
             />
           </div>
 
-          @if (form.controls['hoTen'].errors?.['minlength']) {
+          @if (form.controls['fullName'].errors?.['minlength']) {
           <p class="text-red-500 text-sm mt-1">Mật khẩu phải có ít nhất 6 ký</p>
-          tự. } @if (form.controls['hoTen'].touched && form.controls['hoTen'].invalid) {
+          tự. } @if (form.controls['fullName'].touched && form.controls['fullName'].invalid) {
           <p class="text-sm text-red-500 mt-1">Vui lòng nhập tên của bạn</p>
           }
         </div>

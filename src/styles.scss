@@ -6,8 +6,8 @@
 /* ===========================
    TAILWIND IMPORT
    =========================== */
-@import 'styles/tailwind.css';
-@import 'ngx-toastr/toastr';
+@use 'styles/tailwind.css' as *;
+@use 'ngx-toastr/toastr' as *;
 
 /* ===========================
    THEME CONFIG

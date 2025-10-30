@@ -9,3 +9,8 @@ export const selectIsLoggedIn = createSelector(
     (state) => state.loggedIn
 );
 
+// Selector Kiểm tra tên login
+export const selectFullName = createSelector(
+    selectAuthState,
+    (state) => state.fullName
+)

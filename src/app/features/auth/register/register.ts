@@ -1,12 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, MinLengthValidator } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatIconModule } from '@angular/material/icon';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { OtpComponent } from '@shared/component/ui/otp-screen/otp-screen';
 import { MatDialog } from '@angular/material/dialog';
 import { AuthService } from 'src/services/auth/auth.service';
-import { NGXLogger } from 'ngx-logger';
 import { LoggerService } from 'src/configs/logger.service';
 import { ToastrService } from 'ngx-toastr';
 
@@ -40,7 +39,7 @@ export class RegisterComponent {
         ],
       ], password: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Z])(?=.*\d).{6,}$/)]],
       rePassword: ['', [Validators.required, Validators.pattern(/^(?=.*[A-Z])(?=.*\d).{6,}$/)]],
-      hoTen: ['', [Validators.required, Validators.minLength(4)]],
+      fullName: ['', [Validators.required, Validators.minLength(4)]],
     });
   }
 
