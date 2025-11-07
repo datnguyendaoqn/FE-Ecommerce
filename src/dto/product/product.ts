@@ -3,5 +3,5 @@ export interface ProductSummaryDto {
     name: string;
     startingPrice: number;
     primaryImageUrl: string;
-    status: string;
+    status: 'active' | 'inactive';
 }

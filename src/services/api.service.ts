@@ -27,6 +27,18 @@ export class BaseApiService<RequestDto, ResponseDto> {
     }
   }
 
+  async getById(id: number): Promise<ResponseDto[]> {
+    try {
+      const res = await axiosInstance.get<{ data: ResponseDto[] }>(
+        `${this.baseUrl}${this.endpoint}/${id}`
+      );
+      this.logger.debug(`GET BY ID → ${this.endpoint}/${id}`, res.data);
+      return res.data.data;
+    } catch (error) {
+      throw this.helper.ThrowError(error);
+    }
+  }
+
   async create(dto: RequestDto): Promise<ResponseDto> {
     try {
       const res = await axiosInstance.post(

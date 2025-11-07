@@ -1,5 +1,5 @@
 export interface ApiResponseDto {
-    isSuccess: string,
-    code: number,
-    message: string,
+    isSuccess?: string,
+    code?: number,
+    message?: string,
 }

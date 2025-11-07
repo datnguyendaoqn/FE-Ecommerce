@@ -1,0 +1,87 @@
+<div class="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-4xl font-bold text-primary-800">Quản lý Sản phẩm</h1>
+    <a
+      routerLink="/seller/products/new"
+      class="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 px-6 rounded-lg shadow-button hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
+    >
+      <mat-icon>add</mat-icon>
+      <span>Thêm Sản phẩm</span>
+    </a>
+  </div>
+
+  <div class="bg-white shadow-card rounded-xl overflow-hidden">
+    <table class="w-full">
+      <thead class="bg-primary-50">
+        <tr>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Hình ảnh</th>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Tên Sản phẩm</th>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Thương hiệu</th>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Tổng tồn kho</th>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Trạng thái</th>
+          <th class="p-4 text-left text-sm font-semibold text-primary-700">Hành động</th>
+        </tr>
+      </thead>
+      <tbody>
+        @if (products$ | async; as products) { 
+          @for (product of products; track product.id) {
+          <tr class="border-b border-gray-100 hover:bg-gray-50 transition-colors">
+            <td class="p-4">
+              <img
+                [src]="getPrimaryImageUrl(product.media)"
+                [alt]="product.name"
+                class="w-16 h-16 object-cover rounded-md border"
+              />
+            </td>
+            <td class="p-4">
+              <div class="font-semibold text-gray-800">{{ product.name }}</div>
+              <div class="text-xs text-gray-500">ID: {{ product.id }}</div>
+            </td>
+            <td class="p-4 text-gray-600">{{ product.brand }}</td>
+            <td class="p-4 text-gray-600">
+              {{ getTotalStock(product.variants) }}
+            </td>
+            <td class="p-4">
+              @if (product.status === 'active') {
+              <span
+                class="px-3 py-1 bg-success-100 text-success-700 rounded-full text-xs font-medium"
+              >
+                Đang bán
+              </span>
+              } @else {
+              <span
+                class="px-3 py-1 bg-gray-200 text-gray-600 rounded-full text-xs font-medium"
+              >
+                Ngừng bán
+              </span>
+              }
+            </td>
+            <td class="p-4">
+              <div class="flex gap-2">
+                <a
+                  [routerLink]="['/seller/products/edit', product.id]"
+                  class="p-2 text-primary-600 hover:text-primary-800 hover:bg-primary-100 rounded-full transition-colors"
+                >
+                  <mat-icon>edit</mat-icon>
+                </a>
+                <button
+                  (click)="deleteProduct(product.id)"
+                  class="p-2 text-danger-600 hover:text-danger-800 hover:bg-danger-100 rounded-full transition-colors"
+                >
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          } 
+        } @else {
+          <tr>
+            <td colspan="6" class="p-8 text-center text-gray-500">
+              Đang tải danh sách sản phẩm...
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

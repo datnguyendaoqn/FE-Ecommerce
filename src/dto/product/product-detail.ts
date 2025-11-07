@@ -1,7 +1,7 @@
 import { ApiResponseDto } from "@dtos/api/api.response.dto";
 import { ReviewResponseDto } from "@dtos/review/review";
 
-export interface ProductDetailResponseDto {
+export interface ProductDetailResponseDto extends ApiResponseDto {
     id: number;
     name: string;
     description: string;
