@@ -1,6 +1,10 @@
 import { Component, signal, effect, input, output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { OtpDialogData } from './otp-dialog-data';
+import { NGXLogger } from 'ngx-logger';
+import { LoggerService } from 'src/configs/logger.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-otp-screen',
@@ -11,7 +15,9 @@ import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 export class OtpComponent {
   // Input từ component cha
   email = signal('');
-  private data = inject(MAT_DIALOG_DATA);
+  private data = inject<OtpDialogData>(MAT_DIALOG_DATA);
+  type = signal<'REGISTER_ACCOUNT' | 'RESET_PASSWORD'>('REGISTER_ACCOUNT');
+
 
   // Output events
   onVerifySuccess = output<string>();
@@ -24,7 +30,7 @@ export class OtpComponent {
   isVerifying = signal<boolean>(false);
   private countdownInterval: any;
 
-  constructor() {
+  constructor(private logger: LoggerService, private toast: ToastrService) {
     effect(() => {
       if (this.countdown() === 0) {
         this.canResend.set(true);
@@ -146,11 +152,13 @@ export class OtpComponent {
   async resendOtp() {
     if (this.canResend() && !this.isVerifying()) {
       try {
+        if (this.data.type === 'REGISTER_ACCOUNT') {
+          // * Gửi lại mã otp
+          this.data.service.registerOtp(this.data.email)
+        } else if (this.data.type === 'RESET_PASSWORD') {
+          this.data.service.registerOtp(this.data.email)
+        }
         console.log('Resending OTP to email:', this.email());
-
-        // TODO: Gọi API resend OTP
-        // await this.otpService.resendOtp(this.email());
-
         this.otpDigits.set(['', '', '', '', '', '']);
         this.startCountdown();
         this.onResendSuccess.emit();
@@ -168,34 +176,40 @@ export class OtpComponent {
 
   async verifyOtp() {
     const otp = this.otpDigits().join('');
-    if (otp.length === 6 && !this.isVerifying()) {
-      this.isVerifying.set(true);
+    if (otp.length !== 6 || this.isVerifying()) return;
 
-      try {
-        console.log('Verifying OTP:', otp, 'for email:', this.email());
+    this.isVerifying.set(true);
+    try {
+      this.logger.debug('Verifying OTP:', otp, 'for email:', this.email(), 'type:', this.type());
 
-        // TODO: Gọi API verify OTP
-        // const result = await this.otpService.verifyOtp(this.email(), otp);
+      if (this.data.type === 'REGISTER_ACCOUNT') {
+        const registerRequest = {
+          ...this.data.data,
+          otp: otp
+        }
+        // * Đăng ký account
+        try {
+          const registerRes = await this.data.service.registerAccount(registerRequest)
+          if (registerRes?.isSuccess) {
+            this.toast.success("Đăng nhập để tiếp tục", "Đăng ký thành công")
+            window.location.href = "/login"
+          }
+        } catch (error) {
+          this.toast.error(String(error), "Lỗi")
 
-        // Giả lập API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        }
 
-        // Emit success
-        this.onVerifySuccess.emit(otp);
-
-      } catch (error: any) {
-        console.error('Verify OTP error:', error);
-        this.onVerifyError.emit(error.message || 'Mã OTP không đúng');
-
-        // Reset OTP
-        this.otpDigits.set(['', '', '', '', '', '']);
-        setTimeout(() => {
-          const firstInput = document.querySelector('.otp-input') as HTMLInputElement;
-          firstInput?.focus();
-        }, 100);
-      } finally {
-        this.isVerifying.set(false);
+      } else if (this.data.type === 'RESET_PASSWORD') {
+        // Gọi API reset mật khẩu
       }
+      await new Promise(resolve => setTimeout(resolve, 800));
+      this.onVerifySuccess.emit(otp);
+    } catch (err: any) {
+      this.logger.error(err);
+      this.onVerifyError.emit(err.message || 'Lỗi xác thực OTP');
+      this.otpDigits.set(['', '', '', '', '', '']);
+    } finally {
+      this.isVerifying.set(false);
     }
   }
 
