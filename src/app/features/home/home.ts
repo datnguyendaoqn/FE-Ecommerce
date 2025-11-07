@@ -20,7 +20,7 @@ interface ProductSummaryDto {
   templateUrl: './home.html',
 })
 export class HomeComponent {
-  // 🔹 Mock dữ liệu hero section
+  //  Mock dữ liệu hero section
   hero = {
     title: 'Khám phá bộ sưu tập Thu Đông 2025',
     subtitle: 'Phong cách hiện đại, chất lượng đỉnh cao',
