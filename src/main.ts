@@ -51,7 +51,6 @@ bootstrapApplication(AppComponent, {
     easeTime: 300,              // thời gian animation
     newestOnTop: true,          // hiện toast mới nhất lên đầu
   }),
-
   { provide: 'AXIOS_INIT', useFactory: initAxiosFactory },
 
   ],

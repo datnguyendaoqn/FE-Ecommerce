@@ -1,0 +1,49 @@
+<div
+  class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 cursor-pointer"
+  [routerLink]="['/product', product.id]"
+>
+  <!-- Product Image -->
+  <div class="relative overflow-hidden bg-gray-100">
+    <img
+      [src]="product.primaryImageUrl"
+      [alt]="product.name"
+      class="w-full object-cover transition-transform duration-500 group-hover:scale-105"
+      [ngClass]="compact ? 'h-56 sm:h-64' : 'h-72 sm:h-80'"
+      loading="lazy"
+    />
+
+    <!-- Action Buttons -->
+    <div
+      class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center"
+    >
+      <div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <button
+          aria-label="Thêm vào yêu thích"
+          (click)="onAddToFavorite()"
+          class="bg-white text-gray-700 hover:text-red-500 hover:bg-red-50 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300"
+        >
+          <mat-icon>favorite_border</mat-icon>
+        </button>
+        <button
+          (click)="onAddToCart()"
+          aria-label="Thêm vào giỏ"
+          class="bg-white text-gray-700 hover:text-primary-600 hover:bg-primary-50 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300"
+        >
+          <mat-icon>add_shopping_cart</mat-icon>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Product Info -->
+  <div class="p-4 text-center">
+    <h3
+      class="font-semibold text-gray-900 text-base sm:text-lg truncate hover:text-primary-600 transition-colors"
+    >
+      {{ product.name }}
+    </h3>
+    <p class="text-red-600 font-bold text-lg sm:text-xl mt-2">
+      {{ product.startingPrice | number : '1.0-0' }}đ
+    </p>
+  </div>
+</div>

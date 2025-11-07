@@ -1,5 +1,5 @@
 // src/app/app.config.ts
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
@@ -11,6 +11,6 @@ export const appConfig: ApplicationConfig = {
         provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(routes),
         provideStore(rootReducers),
-        provideStoreDevtools({ maxAge: 25 }) // Optional: để debug với Redux DevTools
+        provideStoreDevtools({ maxAge: 25 }), // Optional: để debug với Redux DevTools
     ]
 };
