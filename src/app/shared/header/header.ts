@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { MatIcon } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
-import { selectFullName, selectIsLoggedIn } from '@features/auth/store/auth.selectors';
+import { selectFullName, selectIsLoggedIn, selectUserRole } from '@features/auth/store/auth.selectors';
 import { logout } from '@features/auth/store/auth.actions';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
@@ -15,12 +15,14 @@ import { Observable } from 'rxjs';
 export class HeaderComponent {
   isLoggedIn$!: Observable<boolean>;
   userName$!: Observable<string | undefined>;
+  userRole$!: Observable<string | undefined>; 
   isMobileMenuOpen = false;
   isUserMenuOpen = false;
 
   constructor(private store: Store) {
     this.isLoggedIn$ = this.store.select(selectIsLoggedIn);
-    this.userName$ = this.store.select(selectFullName)
+    this.userName$ = this.store.select(selectFullName);
+    this.userRole$ = this.store.select(selectUserRole); 
   }
 
   toggleMobileMenu() {
@@ -39,6 +41,8 @@ export class HeaderComponent {
   logout() {
     this.store.dispatch(logout());
     this.closeMenus();
+    localStorage.clear();
+    window.location.href = '/';
   }
 
   getInitials(name: string): string {

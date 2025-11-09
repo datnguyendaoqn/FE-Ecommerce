@@ -1,0 +1,227 @@
+<div class="max-w-4xl mx-auto space-y-6">
+  <h1 class="text-3xl font-bold text-gray-800">
+    @if (isEditMode()) {
+      Chỉnh sửa Sản phẩm
+    } @else {
+      Thêm Sản phẩm mới
+    }
+  </h1>
+
+  @if (isLoading() && isEditMode()) {
+    <div class="flex justify-center items-center h-96">
+      <svg class="animate-spin h-8 w-8 text-primary-600" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" 
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
+      </svg>
+    </div>
+  } @else {
+    
+    <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="space-y-6">
+      
+      <div class="bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">
+          1. Thông tin cơ bản
+        </h2>
+        
+        <div class="space-y-4">
+          <div>
+            <label for="name" class="block text-sm font-medium text-gray-700 mb-1">
+              Tên sản phẩm <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="name" formControlName="name"
+                   class="w-full px-3 py-2 border rounded-lg"
+                   [ngClass]="isInvalid('name') ? 'border-red-500' : 'border-gray-300'">
+            @if (isInvalid('name')) {
+              <p class="text-sm text-red-600 mt-1">Tên sản phẩm là bắt buộc.</p>
+            }
+          </div>
+
+          <div>
+            <label for="categoryId" class="block text-sm font-medium text-gray-700 mb-1">
+              Danh mục <span class="text-red-500">*</span>
+            </label>
+            <select id="categoryId" formControlName="categoryId"
+                    class="w-full px-3 py-2 border rounded-lg"
+                    [ngClass]="isInvalid('categoryId') ? 'border-red-500' : 'border-gray-300'">
+              <option [ngValue]="null" disabled>Chọn danh mục</option>
+              @for (category of categories(); track category.id) {
+                <option [ngValue]="category.id">{{ category.name }}</option>
+              }
+            </select>
+             @if (isInvalid('categoryId')) {
+              <p class="text-sm text-red-600 mt-1">Vui lòng chọn danh mục.</p>
+            }
+          </div>
+
+          <div>
+            <label for="brand" class="block text-sm font-medium text-gray-700 mb-1">
+              Thương hiệu
+            </label>
+            <input type="text" id="brand" formControlName="brand"
+                   class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+          </div>
+
+          <div>
+            <label for="description" class="block text-sm font-medium text-gray-700 mb-1">
+              Mô tả sản phẩm
+            </label>
+            <textarea id="description" formControlName="description" rows="5"
+                      class="w-full px-3 py-2 border border-gray-300 rounded-lg"></textarea>
+          </div>
+        </div>
+      </div>
+
+
+      @if (!isEditMode()) {
+        <div class="bg-white p-6 rounded-xl shadow-md" formArrayName="variants">
+          <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">
+            2. Thông tin bán hàng
+          </h2>
+          
+          @for (variantGroup of variantsArray.controls; track $index) {
+            <div [formGroupName]="$index" class="border border-gray-200 rounded-lg p-4 mb-4 relative">
+              
+              @if (variantsArray.length > 1) {
+                <button 
+                  type="button" 
+                  (click)="removeVariant($index)"
+                  class="absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full shadow-md hover:bg-red-600">
+                  <mat-icon>close</mat-icon>
+                </button>
+              }
+              
+              <p class="font-medium text-gray-800 mb-3">Phân loại hàng {{$index + 1}}</p>
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label [for]="'sku-' + $index" class="block text-sm font-medium text-gray-700 mb-1">
+                    SKU <span class="text-red-500">*</span>
+                  </label>
+                  <input type="text" [id]="'sku-' + $index" formControlName="sku"
+                         class="w-full px-3 py-2 border rounded-lg"
+                         [ngClass]="isInvalid('sku', variantGroup) ? 'border-red-500' : 'border-gray-300'">
+                </div>
+
+                <div>
+                  <label [for]="'image-' + $index" class="block text-sm font-medium text-gray-700 mb-1">
+                    Hình ảnh <span class="text-red-500">*</span>
+                  </label>
+                  <input type="file" [id]="'image-' + $index" 
+                         (change)="onFileChange($event, $index)"
+                         accept="image/*"
+                         class="w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-primary-50 file:text-primary-600 hover:file:bg-primary-100"
+                         [ngClass]="isInvalid('image', variantGroup) ? 'border border-red-500 rounded-lg' : ''">
+                  @if (isInvalid('image', variantGroup)) {
+                    <p class="text-sm text-red-600 mt-1">Ảnh là bắt buộc.</p>
+                  }
+                </div>
+                
+                <div>
+                  <label [for]="'color-' + $index" class="block text-sm font-medium text-gray-700 mb-1">Màu sắc</label>
+                  <input type="text" [id]="'color-' + $index" formControlName="color"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+
+                <div>
+                  <label [for]="'size-' + $index" class="block text-sm font-medium text-gray-700 mb-1">Size</label>
+                  <input type="text" [id]="'size-' + $index" formControlName="variantSize"
+                         class="w-full px-3 py-2 border border-gray-300 rounded-lg">
+                </div>
+
+                <div>
+                  <label [for]="'price-' + $index" class="block text-sm font-medium text-gray-700 mb-1">
+                    Giá <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" [id]="'price-' + $index" formControlName="price"
+                         class="w-full px-3 py-2 border rounded-lg"
+                         [ngClass]="isInvalid('price', variantGroup) ? 'border-red-500' : 'border-gray-300'">
+                </div>
+
+                <div>
+                  <label [for]="'qty-' + $index" class="block text-sm font-medium text-gray-700 mb-1">
+                    Số lượng <span class="text-red-500">*</span>
+                  </label>
+                  <input type="number" [id]="'qty-' + $index" formControlName="quantity"
+                         class="w-full px-3 py-2 border rounded-lg"
+                         [ngClass]="isInvalid('quantity', variantGroup) ? 'border-red-500' : 'border-gray-300'">
+                </div>
+              </div>
+            </div>
+          }
+
+          <button 
+            type="button" 
+            (click)="addVariant()"
+            class="mt-4 w-full border-2 border-dashed border-primary-500 text-primary-600 font-medium py-3 rounded-lg hover:bg-primary-50 transition-colors">
+            + Thêm phân loại
+          </button>
+        </div>
+      }
+
+      @if (isEditMode()) {
+        <div class="bg-white p-6 rounded-xl shadow-md">
+          <h2 class="text-lg font-semibold text-gray-800 border-b pb-3 mb-4">
+            2. Thông tin bán hàng (Biến thể)
+          </h2>
+          <p class="text-sm text-orange-600 bg-orange-50 p-3 rounded-lg mb-4">
+            <mat-icon class="!w-4 !h-4 align-text-bottom">info</mat-icon>
+            Việc quản lý (thêm/sửa/xóa) biến thể sẽ được thực hiện sau khi tạo sản phẩm.
+          </p>
+
+          <div class="space-y-3">
+            @for (variant of variantsReadOnly; track variant.id) {
+              <div class="flex items-center p-3 bg-gray-50 rounded-lg">
+                <img 
+                  [src]="variant.primaryImageUrl || 'assets/images/banner-1.jpg'" 
+                  [alt]="variant.sku"
+                  class="w-12 h-12 rounded-lg object-cover">
+                <div class="ml-4 flex-1">
+                  <p class="font-medium text-gray-800">{{ variant.color }} / {{ variant.variantSize }}</p>
+                  <p class="text-sm text-gray-500">SKU: {{ variant.sku }}</p>
+                </div>
+                <div class="text-right">
+                  <p class="font-semibold text-red-600">{{ variant.price | currency:'VND':'đ' }}</p>
+                  <p class="text-sm text-gray-500">Kho: {{ variant.quantity }}</p>
+                </div>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+
+      <div class="flex justify-end space-x-4">
+        <button 
+          type="button"
+          (click)="onCancel()"
+          class="bg-gray-200 text-gray-700 font-semibold py-2.5 px-6 rounded-lg hover:bg-gray-300 transition-colors">
+          Hủy
+        </button>
+        <button 
+          type="submit"
+          [disabled]="productForm.invalid || isLoading()"
+          class="bg-gradient-to-r from-primary-600 to-primary-700 text-white font-semibold py-2.5 px-6 rounded-lg shadow-button hover:shadow-xl transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
+          @if (isLoading()) {
+            <svg class="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" 
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+              </path>
+            </svg>
+            <span>Đang lưu...</span>
+          } @else {
+            <span>
+              @if (isEditMode()) {
+                Lưu thay đổi
+              } @else {
+                Tạo sản phẩm
+              }
+            </span>
+          }
+        </button>
+      </div>
+    </form>
+  }
+</div>
