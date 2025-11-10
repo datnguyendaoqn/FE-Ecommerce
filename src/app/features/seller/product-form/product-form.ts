@@ -1,150 +1,286 @@
-// import { Component, OnInit, inject } from '@angular/core';
-// import { CommonModule } from '@angular/common';
-// import {
-//   FormArray,
-//   FormBuilder,
-//   FormGroup,
-//   ReactiveFormsModule,
-//   Validators,
-// } from '@angular/forms';
-// import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-// import { MatIcon } from '@angular/material/icon';
-// import { Observable } from 'rxjs';
-// import { ToastrService } from 'ngx-toastr';
-// import { ProductService } from 'src/services/product/product.service';
-// import { CategoryDto } from '@dtos/category/category';
-// import { ProductSummaryDto } from '@dtos/product/product';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
+import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-// @Component({
-//   selector: 'app-product-form',
-//   standalone: true,
-//   imports: [CommonModule, ReactiveFormsModule, RouterModule, MatIcon],
-//   templateUrl: './product-form.component.html',
-// })
-// export class ProductFormComponent implements OnInit {
-//   private fb = inject(FormBuilder);
-//   private router = inject(Router);
-//   private route = inject(ActivatedRoute);
-//   private productService = inject(ProductService);
-//   private toast = inject(ToastrService);
+// Import DTO và Service
+import { SellerProductService } from 'src/services/seller-product/seller-product.service';
+import { SellerProductDetailDto, SellerProductVariantDetailDto } from '@dtos/product/seller-product-detail.dto';
 
-//   productForm!: FormGroup;
-//   isEditMode = false;
-//   productId: number | null = null;
-//   categories$!: Observable<CategoryDto[]>;
-//   isLoading = false;
+// Import Service và DTO của Category
+import { CategoryService } from 'src/services/category/category.service';
+import { RecursiveCategoryDto } from '@dtos/category/category.dto';
 
-//   constructor() {
-//     this.productForm = this.fb.group({
-//       id: [null],
-//       name: ['', Validators.required],
-//       description: [''],
-//       brand: ['', Validators.required],
-//       categoryId: [null, Validators.required],
-//       status: ['active', Validators.required],
+@Component({
+  selector: 'app-seller-product-form',
+  standalone: true,
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatIcon,
+    CurrencyPipe,
+    ReactiveFormsModule // <-- Import ReactiveFormsModule
+  ],
+  templateUrl: './product-form.html',
+})
+export class SellerProductFormComponent implements OnInit {
+  
+  productForm: FormGroup;
+  isEditMode = signal(false);
+  isLoading = signal(false);
+  private productId = signal<number | null>(null);
 
-//       variants: this.fb.array([], Validators.required),
+  // Signal để lưu danh mục (lấy từ API)
+  categories = signal<RecursiveCategoryDto[]>([]); 
 
-//       media: this.fb.array([]),
-//     });
-//   }
+  constructor(
+    private fb: FormBuilder,
+    private sellerProductService: SellerProductService,
+    private toastr: ToastrService,
+    private route: ActivatedRoute, 
+    private router: Router,
+    private categoryService: CategoryService // <-- Inject CategoryService
+  ) {
+    // Khởi tạo form rỗng ban đầu
+    this.productForm = this.initForm();
+  }
 
-//   ngOnInit() {
-//     this.categories$ = this.productService.getAll();
+  ngOnInit() {
+    this.loadCategories(); // Tải danh mục khi component khởi chạy
     
-//     this.route.paramMap.subscribe((params) => {
-//       const id = params.get('id');
-//       if (id) {
-//         this.isEditMode = true;
-//         this.productId = +id;
-//         this.loadProductData(+id);
-//       } else {
+    // Kiểm tra URL để xem đây là trang Thêm mới hay Chỉnh sửa
+    const idParam = this.route.snapshot.paramMap.get('id');
+    if (idParam) {
+      const id = +idParam;
+      this.isEditMode.set(true);
+      this.productId.set(id);
+      this.loadProductForEdit(id);
+    } else {
+      this.isEditMode.set(false);
+      this.productForm = this.initForm(); // Tạo form mới
+    }
+  }
 
-//         this.addVariant();
-//       }
-//     });
-//   }
+  /**
+   * Tải danh sách danh mục từ API
+   */
+  async loadCategories() {
+    try {
+      const categoryTree = await this.categoryService.getAllCategories();
+      // API trả về dạng cây, chúng ta "làm phẳng" (flatten) cây này
+      const flatCategories = this.flattenCategories(categoryTree);
+      this.categories.set(flatCategories);
+    } catch (error) {
+      this.toastr.error('Không thể tải danh mục.', 'Lỗi');
+    }
+  }
 
-//   loadProductData(id: number) {
-//     this.productService.getById(id).subscribe((product) => {
-//       if (product) {
-//         this.productForm.patchValue(product);
+  /**
+   * Helper (Đệ quy) để làm phẳng cây danh mục cho dropdown
+   */
+  private flattenCategories(
+    categories: RecursiveCategoryDto[], 
+    prefix = ''
+  ): RecursiveCategoryDto[] {
+    
+    let flatList: RecursiveCategoryDto[] = [];
+    
+    for (const category of categories) {
+      const categoryName = `${prefix}${category.name}`;
+      flatList.push({ ...category, name: categoryName });
+
+      if (category.children && category.children.length > 0) {
+        const childPrefix = `${categoryName} > `;
+        flatList = flatList.concat(
+          this.flattenCategories(category.children, childPrefix)
+        );
+      }
+    }
+    return flatList;
+  }
+
+  /**
+   * Khởi tạo form (cho cả Thêm mới và Chỉnh sửa)
+   */
+  initForm(product: SellerProductDetailDto | null = null): FormGroup {
+    const form = this.fb.group({
+      // 1. Thông tin cơ bản
+      name: [product?.name || '', [Validators.required, Validators.maxLength(200)]],
+      description: [product?.description || ''],
+      brand: [product?.brand || ''],
+      categoryId: [product?.categoryId || null, [Validators.required]],
+      
+      // 3. Phân loại hàng (Variants)
+      variants: this.fb.array(
+        this.isEditMode() && product 
+          ? [] // Ở chế độ Sửa, không dùng FormArray
+          : [this.createVariantGroup()] // Ở chế độ Mới, tạo 1 nhóm rỗng
+      )
+    });
+
+    if (this.isEditMode()) {
+      // Nếu là chế độ Sửa, khóa (disable) phần variants
+      form.get('variants')?.disable();
+    }
+    
+    return form;
+  }
+
+  /**
+   * Tải dữ liệu sản phẩm khi ở chế độ Sửa
+   */
+  async loadProductForEdit(id: number) {
+    this.isLoading.set(true);
+    try {
+      const product = await this.sellerProductService.getProductDetail(id);
+      this.productForm = this.initForm(product); // Tạo form với dữ liệu
+      
+      // (Lưu riêng data variant để hiển thị read-only)
+      this.productForm.addControl('variants_readonly', this.fb.control(product.variants));
+
+    } catch (error) {
+      this.toastr.error(String(error), 'Lỗi tải sản phẩm');
+      this.router.navigate(['/seller/products']);
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
+
+  /**
+   * Tạo một FormGroup cho một biến thể (variant)
+   */
+  createVariantGroup(): FormGroup {
+    return this.fb.group({
+      sku: ['', [Validators.required]],
+      variantSize: [''],
+      color: [''],
+      price: [1000, [Validators.required, Validators.min(1000)]],
+      quantity: [0, [Validators.required, Validators.min(0)]],
+      image: [null, [Validators.required]] // Sẽ lưu File object
+    });
+  }
+
+  // Getter tiện lợi để lấy FormArray
+  get variantsArray(): FormArray {
+    return this.productForm.get('variants') as FormArray;
+  }
+  
+  // Getter tiện lợi để lấy danh sách variants (chế độ Sửa)
+  get variantsReadOnly(): SellerProductVariantDetailDto[] {
+    return this.productForm.get('variants_readonly')?.value || [];
+  }
+
+  addVariant() {
+    this.variantsArray.push(this.createVariantGroup());
+  }
+
+  removeVariant(index: number) {
+    if (this.variantsArray.length > 1) {
+      this.variantsArray.removeAt(index);
+    } else {
+      this.toastr.warning('Sản phẩm phải có ít nhất 1 phân loại hàng.');
+    }
+  }
+
+  /**
+   * Xử lý khi người dùng chọn file ảnh cho variant
+   */
+  onFileChange(event: Event, variantIndex: number) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const variantGroup = this.variantsArray.at(variantIndex);
+      variantGroup.patchValue({ image: file });
+      variantGroup.get('image')?.updateValueAndValidity();
+    }
+  }
+
+  /**
+   * Xử lý khi submit form
+   */
+  async onSubmit() {
+    if (this.productForm.invalid) {
+      this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
+      this.productForm.markAllAsTouched(); // Hiển thị lỗi
+      return;
+    }
+
+    this.isLoading.set(true);
+
+    try {
+      if (this.isEditMode()) {
+        // ========== CHẾ ĐỘ CẬP NHẬT (PUT) ==========
+        const dto = {
+          name: this.productForm.value.name,
+          description: this.productForm.value.description,
+          brand: this.productForm.value.brand,
+          categoryId: this.productForm.value.categoryId,
+        };
         
-//         this.variants.clear();
-
-//         product.variants.forEach(variant => {
-//           this.variants.push(this.fb.group(variant));
-//         });
+        await this.sellerProductService.updateProduct(this.productId()!, dto);
+        this.toastr.success('Cập nhật sản phẩm thành công!');
         
-//       } else {
-//         this.toast.error('Không tìm thấy sản phẩm');
-//         this.router.navigate(['/seller/products']);
-//       }
-//     });
-//   }
+      } else {
+        // ========== CHẾ ĐỘ TẠO MỚI (POST) ==========
+        const formData = this.buildFormData();
+        await this.sellerProductService.createProduct(formData);
 
-//   get variants() {
-//     return this.productForm.get('variants') as FormArray;
-//   }
+        this.toastr.success('Tạo sản phẩm thành công!');
+        this.router.navigate(['/seller/products']); // Điều hướng về danh sách
+      }
+    } catch (error) {
+      this.toastr.error(String(error), 'Đã xảy ra lỗi');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 
-//   createVariantGroup(): FormGroup {
-//     return this.fb.group({
-//       id: [null],
-//       sku: ['', Validators.required],
-//       variantSize: ['', Validators.required],
-//       color: ['', Validators.required],
-//       price: [0, [Validators.required, Validators.min(1000)]],
-//       quantity: [0, [Validators.required, Validators.min(0)]],
-//     });
-//   }
+  /**
+   * Xây dựng FormData để gửi API (cho chế độ Thêm mới)
+   */
+  private buildFormData(): FormData {
+    const formData = new FormData();
+    const formValue = this.productForm.value;
 
-//   addVariant() {
-//     this.variants.push(this.createVariantGroup());
-//   }
-
-//   removeVariant(index: number) {
-//     if (this.variants.length > 1) {
-//       this.variants.removeAt(index);
-//     } else {
-//       this.toast.warning('Phải có ít nhất 1 biến thể');
-//     }
-//   }
-
-//   addMockMedia() {
-
-//      const mediaFormArray = this.productForm.get('media') as FormArray;
-//      mediaFormArray.push(this.fb.group({
-//        id: [null],
-//        imageUrl: ['https://via.placeholder.com/600x600.png?text=New+Image+' + Date.now()],
-//        isPrimary: [mediaFormArray.length === 0], 
-//        altText: ['Mô tả ảnh'],
-//      }))
-//   }
-
-//   onSubmit() {
-//     if (this.productForm.invalid) {
-//       this.toast.error('Vui lòng kiểm tra lại form, có trường bị lỗi');
-//       this.productForm.markAllAsTouched();
-//       return;
-//     }
+    // 1. Thêm thông tin cơ bản
+    formData.append('name', formValue.name);
+    formData.append('description', formValue.description || '');
+    formData.append('brand', formValue.brand || '');
+    formData.append('categoryId', formValue.categoryId.toString());
     
-//     this.isLoading = true;
-//     const productData = this.productForm.value as ProductSummaryDto;
-    
-//     if (!productData.media || productData.media.length === 0) {
-//       this.addMockMedia();
-//     }
+    // 2. Thêm thông tin variants (dạng mảng)
+    this.variantsArray.controls.forEach((variantControl, index) => {
+      const variant = (variantControl as FormGroup).value;
+      
+      formData.append(`Variants[${index}].SKU`, variant.sku);
+      formData.append(`Variants[${index}].VariantSize`, variant.variantSize || '');
+      formData.append(`Variants[${index}].Color`, variant.color || '');
+      formData.append(`Variants[${index}].Price`, variant.price.toString());
+      formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
+      
+      // Thêm file ảnh của variant
+      if (variant.image instanceof File) {
+        formData.append(`Variants[${index}].Image`, variant.image, variant.image.name);
+      }
+    });
 
-//     this.productService.saveProduct(productData).subscribe({
-//       next: (savedProduct) => {
-//         this.isLoading = false;
-//         this.toast.success(`Đã ${this.isEditMode ? 'cập nhật' : 'tạo mới'} sản phẩm!`);
-//         this.router.navigate(['/seller/products']);
-//       },
-//       error: (err) => {
-//         this.isLoading = false;
-//         this.toast.error('Lưu thất bại: ' + err.message);
-//       }
-//     });
-//   }
-// }
+    return formData;
+  }
+
+  /** * Helper để check lỗi form (ĐÃ SỬA)
+   * Chấp nhận AbstractControl thay vì chỉ FormGroup
+   */
+  isInvalid(controlName: string, formGroup: AbstractControl | null = null): boolean {
+    const form = formGroup || this.productForm;
+    const control = form.get(controlName);
+    return !!control && control.invalid && (control.touched || control.dirty);
+  }
+
+  /** * Hàm xử lý nút Hủy (ĐÃ THÊM)
+   */
+  onCancel() {
+    this.router.navigate(['/seller/products']);
+  }
+}

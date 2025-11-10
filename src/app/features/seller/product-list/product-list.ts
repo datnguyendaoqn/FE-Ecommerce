@@ -1,49 +1,62 @@
-// import { Component, OnInit, inject } from '@angular/core';
-// import { CommonModule, CurrencyPipe } from '@angular/common';
-// import { RouterModule } from '@angular/router';
-// import { MatIcon } from '@angular/material/icon';
+import { Component, OnInit, signal } from '@angular/core';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+import { MatIcon } from '@angular/material/icon';
+import { RouterModule } from '@angular/router';
+import { ToastrService } from 'ngx-toastr';
 
-// import { Observable, from } from 'rxjs';
-// import { ProductService } from 'src/services/product/product.service';
-// import { ProductSummaryDto } from '@dtos/product/product';
-// import { ProductVariantDetailDto } from '@dtos/product/product-detail';
+import { SellerProductSummaryDto } from '@dtos/product/seller-product-summary.dto';
+import { SellerProductService } from 'src/services/seller-product/seller-product.service';
 
-// @Component({
-//     selector: 'app-product-list',
-//     standalone: true,
-//     imports: [CommonModule, RouterModule, MatIcon, CurrencyPipe],
-//     templateUrl: './product-list.html',
-// })
-// export class ProductListComponent implements OnInit {
-//     private productService = inject(ProductService);
+@Component({
+  selector: 'app-seller-product-list',
+  standalone: true,
+  imports: [CommonModule, RouterModule, MatIcon, CurrencyPipe],
+  templateUrl: './product-list.html',
+})
+export class SellerProductListComponent implements OnInit {
+  
+  products = signal<SellerProductSummaryDto[]>([]);
+  isLoading = signal(true);
 
-//     products$!: Observable<ProductSummaryDto[]>;
+  constructor(
+    private sellerProductService: SellerProductService,
+    private toastr: ToastrService
+  ) {}
 
-//     ngOnInit() {
-//         this.products$ = from(this.productService.getAll());
-//     }
+  ngOnInit() {
+    this.loadProducts();
+  }
 
-//     getPrimaryImageUrl(media: MediaDto[]): string {
-//         if (!media || media.length === 0) {
+  async loadProducts() {
+    this.isLoading.set(true);
+    try {
+      const productList = await this.sellerProductService.getMyProducts();
+      this.products.set(productList);
+    } catch (error) {
+      this.toastr.error(String(error), 'Lỗi tải sản phẩm');
+    } finally {
+      this.isLoading.set(false);
+    }
+  }
 
-//             return 'https://via.placeholder.com/150.png?text=No+Image';
-//         }
+  onDeleteProduct(productId: number) {
+    if (confirm('Bạn có chắc muốn xóa sản phẩm này? (Chưa cài đặt)')) {
+      // TODO: Gọi service xóa khi API sẵn sàng
+      // try {
+      //   await this.sellerProductService.deleteProduct(productId);
+      //   this.toastr.success('Xóa sản phẩm thành công');
+      //   this.loadProducts(); // Tải lại danh sách
+      // } catch (error) {
+      //   this.toastr.error(String(error), 'Lỗi xóa sản phẩm');
+      // }
+      this.toastr.info('Chức năng xóa chưa được cài đặt', 'Thông báo');
+    }
+  }
 
-//         const primaryImage = media.find((m) => m.isPrimary);
-
-//         return primaryImage ? primaryImage.imageUrl : media[0].imageUrl;
-//     }
-
-//     getTotalStock(variants: ProductVariantDetailDto[]): number {
-//         if (!variants || variants.length === 0) {
-//             return 0;
-//         }
-//         return variants.reduce((acc, v) => acc + v.quantity, 0);
-//     }
-
-//     deleteProduct(id: number) {
-//         if (confirm('Bạn có chắc chắn muốn xóa sản phẩm này?')) {
-//             console.log('Xóa sản phẩm:', id);
-//         }
-//     }
-// }
+  getStatusClass(status: string): string {
+    if (status === 'active') {
+      return 'bg-green-100 text-green-700';
+    }
+    return 'bg-gray-100 text-gray-700';
+  }
+}

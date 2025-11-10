@@ -16,7 +16,7 @@ export class AuthService {
         protected readonly helper: HelperService,
         protected readonly logger: NGXLogger
     ) {
-        this.endPoint = "/api/auth"
+        this.endPoint = "/auth"
     }
 
     async login(loginRequestDto: LoginRequestDto): Promise<LoginApiResponseDto> {

@@ -1,0 +1,81 @@
+<div class="flex h-screen bg-gray-100">
+  <aside
+    class="flex flex-col bg-white shadow-lg transition-all duration-300"
+    [ngClass]="isSidebarMinimized ? 'w-20' : 'w-64'"
+  >
+    <div class="flex items-center justify-center h-16 border-b">
+      <a routerLink="/" class="flex items-center space-x-2 group">
+        <div
+          class="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center"
+        >
+          <span class="text-white text-xl font-bold">S</span>
+        </div>
+        <span
+          class="font-bold text-xl text-primary-700"
+          [ngClass]="{ 'hidden': isSidebarMinimized }"
+        >
+          Kênh Bán
+        </span>
+      </a>
+    </div>
+
+    <nav class="flex-1 py-4 space-y-2">
+      <a
+        routerLink="/seller/dashboard"
+        routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-500"
+        class="flex items-center py-3 px-6 text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+      >
+        <mat-icon class="mr-4">dashboard</mat-icon>
+        <span [ngClass]="{ 'hidden': isSidebarMinimized }">Dashboard</span>
+      </a>
+      
+      <a
+        routerLink="/seller/products"
+        routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-500"
+        class="flex items-center py-3 px-6 text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors"
+      >
+        <mat-icon class="mr-4">inventory_2</mat-icon>
+        <span [ngClass]="{ 'hidden': isSidebarMinimized }">Sản phẩm của tôi</span>
+      </a>
+
+      <a
+        href="#"
+        class="flex items-center py-3 px-6 text-gray-400 cursor-not-allowed"
+      >
+        <mat-icon class="mr-4">receipt_long</mat-icon>
+        <span [ngClass]="{ 'hidden': isSidebarMinimized }">Quản lý Đơn hàng</span>
+      </a>
+    </nav>
+
+    <div class="border-t p-4">
+      <button
+        (click)="onLogout()"
+        class="flex items-center w-full py-3 px-6 text-gray-600 hover:bg-red-50 hover:text-red-600 rounded-lg transition-colors"
+      >
+        <mat-icon class="mr-4">logout</mat-icon>
+        <span [ngClass]="{ 'hidden': isSidebarMinimized }">Đăng xuất</span>
+      </button>
+
+      <button
+        (click)="toggleSidebar()"
+        class="w-full flex justify-center items-center mt-4 text-gray-500 hover:text-primary-600"
+      >
+        <mat-icon>
+          {{ isSidebarMinimized ? 'keyboard_arrow_right' : 'keyboard_arrow_left' }}
+        </mat-icon>
+      </button>
+    </div>
+  </aside>
+
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <header class="bg-white shadow-sm h-16 flex items-center justify-between px-6 z-10">
+      <h1 class="text-xl font-semibold text-gray-800">
+        Chào mừng, {{ (userName$ | async) || 'Seller' }}!
+      </h1>
+      </header>
+
+    <div class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 p-6">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

@@ -13,4 +13,14 @@ export const selectIsLoggedIn = createSelector(
 export const selectFullName = createSelector(
     selectAuthState,
     (state) => state.fullName
-)
+);
+
+export const selectUserRole = createSelector(
+    selectAuthState,
+    (state) => state.role
+);
+
+export const selectIsRestored = createSelector(
+    selectAuthState,
+    (state) => state.isRestored
+);

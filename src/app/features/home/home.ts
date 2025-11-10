@@ -4,14 +4,7 @@ import { CarouselModule, OwlOptions } from 'ngx-owl-carousel-o';
 import { MatIcon } from '@angular/material/icon';
 import { LoggerService } from 'src/configs/logger.service';
 import { ProductCardComponent } from '@shared/component/ui/product/product';
-
-interface ProductSummaryDto {
-  id: number;
-  name: string;
-  startingPrice: number;
-  primaryImageUrl: string;
-  status: string;
-}
+import { ProductSummaryDto } from '@dtos/product/product';
 
 @Component({
   selector: 'app-home',
@@ -135,7 +128,7 @@ export class HomeComponent {
   handleAddToFavorite(product: ProductSummaryDto) {
     this.logger.info("Click vào yêu thích")
   }
-  
+
   shouldShowPage(pageNum: number): boolean {
     const total = Math.ceil(this.products.length / this.pageSize);
     if (total <= 7) return true;

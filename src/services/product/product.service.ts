@@ -9,6 +9,6 @@ import { ProductSummaryDto } from '@dtos/product/product';
 })
 export class ProductService extends BaseApiService<ProductSummaryDto, ProductSummaryDto> {
     constructor(helper: HelperService, logger: NGXLogger) {
-        super('products', helper, logger);
+        super('/product', helper, logger);
     }
 }
