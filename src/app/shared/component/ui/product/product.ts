@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductSummaryDto } from '@dtos/product/product';
-import { MatIconModule } from '@angular/material/icon'; // nếu dùng <mat-icon>
+import { MatIconModule } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 
 @Component({
@@ -17,11 +17,15 @@ export class ProductCardComponent {
   @Output() addToCart = new EventEmitter<ProductSummaryDto>();
   @Output() addToFavorite = new EventEmitter<ProductSummaryDto>();
 
-  onAddToCart() {
+  onAddToCart(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
     this.addToCart.emit(this.product);
   }
 
-  onAddToFavorite() {
+  onAddToFavorite(event: Event) {
+    event.preventDefault();
+    event.stopPropagation();
     this.addToFavorite.emit(this.product);
   }
 }

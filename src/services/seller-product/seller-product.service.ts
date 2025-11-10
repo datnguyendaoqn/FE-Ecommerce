@@ -24,7 +24,7 @@ export class SellerProductService extends BaseApiService<any, any> {
 
     async getMyProducts(): Promise<SellerProductSummaryDto[]> {
         try {
-            const res = await axiosInstance.get<SellerProductSummaryApiResponseDto>(`${this.endpoint}/my-shop`);
+            const res = await axiosInstance.get<SellerProductSummaryApiResponseDto>(`${this.baseUrl}${this.endpoint}/my-shop`);
             return res.data.data;
         } catch (error) {
             throw this.helper.ThrowError(error);
@@ -33,7 +33,7 @@ export class SellerProductService extends BaseApiService<any, any> {
 
     async getProductDetail(productId: number): Promise<SellerProductDetailDto> {
         try {
-            const res = await axiosInstance.get<SellerProductDetailApiResponseDto>(`${this.endpoint}/${productId}`);
+            const res = await axiosInstance.get<SellerProductDetailApiResponseDto>(`${this.baseUrl}${this.endpoint}/${productId}`);
             return res.data.data;
         } catch (error) {
             throw this.helper.ThrowError(error);
@@ -43,12 +43,10 @@ export class SellerProductService extends BaseApiService<any, any> {
     async createProduct(formData: FormData): Promise<CreateProductResponseDto> {
         try {
             const res = await axiosInstance.post<CreateProductApiResponseDto>(
-                this.endpoint,
+                `${this.baseUrl}${this.endpoint}`,
                 formData,
                 {
-                    headers: {
-                        'Content-Type': 'multipart/form-data',
-                    },
+                    headers: { "Content-Type": "multipart/form-data" },
                 }
             );
             return res.data.data;
@@ -57,10 +55,11 @@ export class SellerProductService extends BaseApiService<any, any> {
         }
     }
 
+
     async updateProduct(productId: number, dto: UpdateProductRequestDto): Promise<UpdateProductResponseDto> {
         try {
             const res = await axiosInstance.put<UpdateProductApiResponseDto>(
-                `${this.endpoint}/${productId}`,
+                `${this.baseUrl}${this.endpoint}/${productId}`,
                 dto
             );
             return res.data.data;

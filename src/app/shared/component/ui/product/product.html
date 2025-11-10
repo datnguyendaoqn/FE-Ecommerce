@@ -1,49 +1,80 @@
+<!-- product-card.component.html -->
 <div
-  class="group bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 border border-gray-100 cursor-pointer"
+  class="group bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-200 cursor-pointer"
   [routerLink]="['/product', product.id]"
 >
   <!-- Product Image -->
-  <div class="relative overflow-hidden bg-gray-100">
+  <div class="relative overflow-hidden bg-gray-50">
     <img
       [src]="product.primaryImageUrl"
       [alt]="product.name"
-      class="w-full object-cover transition-transform duration-500 group-hover:scale-105"
-      [ngClass]="compact ? 'h-56 sm:h-64' : 'h-72 sm:h-80'"
+      class="w-full object-cover transition-transform duration-500 group-hover:scale-110"
+      [ngClass]="compact ? 'h-48 sm:h-56' : 'h-64 sm:h-72'"
       loading="lazy"
     />
 
-    <!-- Action Buttons -->
+    <!-- Sold Badge -->
+    <div *ngIf="product.selledCount > 0" class="absolute top-3 left-3">
+      <span class="bg-gradient-to-r from-orange-500 to-red-500 text-white text-xs font-semibold px-3 py-1 rounded-full shadow-lg">
+        Đã bán {{ product.selledCount }}
+      </span>
+    </div>
+
+    <!-- Action Buttons Overlay -->
     <div
-      class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-all duration-300 flex items-center justify-center"
+      class="absolute inset-0 bg-gradient-to-t from-black/50 via-black/0 to-black/0 opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center justify-center"
     >
-      <div class="flex space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div class="flex space-x-3 transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
         <button
           aria-label="Thêm vào yêu thích"
-          (click)="onAddToFavorite()"
-          class="bg-white text-gray-700 hover:text-red-500 hover:bg-red-50 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300"
+          (click)="onAddToFavorite($event)"
+          class="bg-white text-gray-700 hover:text-red-500 hover:bg-red-50 p-3 rounded-full shadow-lg transform hover:scale-110 transition-all duration-200"
         >
-          <mat-icon>favorite_border</mat-icon>
+          <mat-icon class="text-xl">favorite_border</mat-icon>
         </button>
         <button
-          (click)="onAddToCart()"
+          (click)="onAddToCart($event)"
           aria-label="Thêm vào giỏ"
-          class="bg-white text-gray-700 hover:text-primary-600 hover:bg-primary-50 p-3 rounded-full shadow-md transform hover:scale-110 transition-all duration-300"
+          class="bg-primary-600 text-white hover:bg-primary-700 p-3 rounded-full shadow-lg transform hover:scale-110 transition-all duration-200"
         >
-          <mat-icon>add_shopping_cart</mat-icon>
+          <mat-icon class="text-xl">add_shopping_cart</mat-icon>
         </button>
       </div>
     </div>
   </div>
 
   <!-- Product Info -->
-  <div class="p-4 text-center">
+  <div class="p-4">
+    <!-- Product Name -->
     <h3
-      class="font-semibold text-gray-900 text-base sm:text-lg truncate hover:text-primary-600 transition-colors"
+      class="font-semibold text-gray-900 text-sm sm:text-base mb-2 line-clamp-2 min-h-[2.5rem] group-hover:text-primary-600 transition-colors"
+      [title]="product.name"
     >
       {{ product.name }}
     </h3>
-    <p class="text-red-600 font-bold text-lg sm:text-xl mt-2">
-      {{ product.startingPrice | number : '1.0-0' }}đ
-    </p>
+
+    <!-- Rating & Reviews -->
+    <div *ngIf="product.averageRating > 0" class="flex items-center gap-2 mb-2">
+      <div class="flex items-center">
+        <mat-icon class="text-yellow-400 text-base">star</mat-icon>
+        <span class="text-sm font-medium text-gray-700 ml-1">
+          {{ product.averageRating | number : '1.1-1' }}
+        </span>
+      </div>
+      <span class="text-xs text-gray-400">|</span>
+      <span class="text-xs text-gray-500">
+        {{ product.reviewCount }} đánh giá
+      </span>
+    </div>
+
+    <!-- Price -->
+    <div class="flex items-center justify-between">
+      <div>
+        <p class="text-red-600 font-bold text-lg sm:text-xl">
+          {{ product.minPrice | number : '1.0-0' }}đ
+        </p>
+        <p class="text-xs text-gray-500">Giá từ</p>
+      </div>
+    </div>
   </div>
 </div>

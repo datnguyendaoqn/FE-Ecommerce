@@ -1,25 +1,39 @@
 import { ApiResponseDto } from "@dtos/api/api.response.dto";
-import { ReviewResponseDto } from "@dtos/review/review";
 
 export interface ProductDetailResponseDto extends ApiResponseDto {
+    data: ProductDetailDto;
+}
+
+export interface ProductDetailDto {
+    // === 1. Thông tin cơ bản ===
     id: number;
     name: string;
     description: string;
     brand: string;
-    primaryImageUrl: string;
-    galleryImageUrls: string[];
+    categoryName: string;
+
+    // === 2. Ảnh sản phẩm ===
+    productImages: ProductImageDto[];
+
+    // === 3. Biến thể (variants) ===
     variants: ProductVariantDetailDto[];
-    reviews?: ReviewResponseDto[];
+}
+
+export interface ProductImageDto {
+    id: number;
+    imageUrl: string;
+    isPrimary: boolean;
 }
 
 export interface ProductVariantDetailDto {
     id: number;
-    productId: number;
-    sku: string;
-    variantSize?: string;     // kích thước
-    color?: string;           // màu sắc
-    material?: string;        // chất liệu
-    price: number;            // giá tiền
-    quantity: number;         // số lượng tồn kho
-    primaryImageUrl?: string; // ảnh đại diện
+    variantSize?: string;
+    color?: string;
+    material?: string;
+    price: number;
+    isInStock: boolean;
+    primaryImage: {
+        id: number;
+        imageUrl: string;
+    };
 }

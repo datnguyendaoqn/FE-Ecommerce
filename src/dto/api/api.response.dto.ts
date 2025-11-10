@@ -1,5 +1,16 @@
 export interface ApiResponseDto {
-    isSuccess?: string,
-    code?: number,
+    isSuccess?: boolean,
+    code?: number | null,
     message?: string,
+}
+
+export interface ApiPaginationResponseDto<T> {
+    isSuccess?: boolean,
+    code?: string,
+    message?: string,
+    data: T,
+    pageNumber: number,
+    pageSize: number,
+    totalCount: number,
+    totalPage: number
 }
