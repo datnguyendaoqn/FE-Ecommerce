@@ -5,12 +5,16 @@ import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { routes } from './app.routes';
 import { rootReducers } from './store/root.reducer';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { authInterceptor } from '@core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [
         provideZoneChangeDetection({ eventCoalescing: true }),
         provideRouter(routes),
         provideStore(rootReducers),
-        provideStoreDevtools({ maxAge: 25 }), // Optional: để debug với Redux DevTools
+        provideStoreDevtools({ maxAge: 25 }), // Optional: để debug với Redux DevTools,
+        provideHttpClient(withInterceptors([authInterceptor]))
     ]
+    
 };

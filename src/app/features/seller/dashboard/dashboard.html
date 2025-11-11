@@ -1,53 +1,172 @@
-<div class="space-y-6">
-  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-    @for (stat of stats; track stat.title) {
-      <div class="bg-white p-6 rounded-xl shadow-md flex items-center space-x-4">
-        <div 
-          class="w-12 h-12 rounded-full flex items-center justify-center text-white"
-          [ngClass]="stat.color"
-        >
-          <mat-icon>{{ stat.icon }}</mat-icon>
-        </div>
-        <div>
-          <p class="text-sm text-gray-500">{{ stat.title }}</p>
-          <p class="text-2xl font-bold text-gray-800">{{ stat.value }}</p>
-        </div>
+<div class="bg-gray-100 min-h-screen font-inter text-gray-800">
+  <header class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <h1 class="text-3xl font-bold text-gray-900">
+        Bảng điều khiển của Seller
+      </h1>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    
+    <!-- Trạng thái Loading -->
+    @if (loading()) {
+      <div class="flex justify-center items-center h-64">
+        <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     }
-  </div>
 
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Biểu đồ Doanh thu (7 ngày)</h3>
-      <div class="h-64 bg-gray-200 rounded-lg flex items-center justify-center">
-        <p class="text-gray-500">[Dữ liệu biểu đồ sẽ được hiển thị ở đây]</p>
+    <!-- Trạng thái Lỗi -->
+    @if (error()) {
+      <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+        <strong class="font-bold">Lỗi!</strong>
+        <span class="block sm:inline">{{ error() }}</span>
       </div>
-    </div>
+    }
 
-    <div class="bg-white p-6 rounded-xl shadow-md">
-      <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Bán chạy</h3>
-      <ul class="space-y-4">
-        <li class="flex items-center space-x-3">
-          <img 
-            class="w-12 h-12 rounded-lg object-cover" 
-            src="https://res.cloudinary.com/ddqg9afsy/image/upload/v1762409940/bxqy4mvsgy7ws4uc5orn.jpg" 
-            alt="Product">
-          <div>
-            <p class="font-medium text-gray-800">Áo Thun Nam Cotton</p>
-            <p class="text-sm text-gray-500">Đã bán: 150</p>
+    <!-- Nội dung Dashboard khi tải xong -->
+    @if (!loading() && !error() && summary()) {
+      <div class="flex flex-col gap-8">
+      
+        <!-- 1. Các chỉ số tổng quan (KPIs) -->
+        <section>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-l-4 border-blue-500">
+              <span class="text-sm font-medium text-gray-500">Tổng doanh thu</span>
+              <span class="text-3xl font-bold text-gray-900">
+                {{ summary()?.totalRevenue | currency:'VND':'symbol':'1.0-0' }}
+              </span>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-l-4 border-green-500">
+              <span class="text-sm font-medium text-gray-500">Tổng đơn hàng</span>
+              <span class="text-3xl font-bold text-gray-900">
+                {{ summary()?.totalValidOrders | number:'1.0-0' }}
+              </span>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-l-4 border-yellow-500">
+              <span class="text-sm font-medium text-gray-500">Sản phẩm đã bán</span>
+              <span class="text-3xl font-bold text-gray-900">
+                {{ summary()?.totalUnitsSold | number:'1.0-0' }}
+              </span>
+            </div>
+            <div class="bg-white rounded-xl shadow-lg p-6 flex flex-col gap-2 border-l-4 border-purple-500">
+              <span class="text-sm font-medium text-gray-500">Khách hàng mới</span>
+              <span class="text-3xl font-bold text-gray-900">
+                {{ summary()?.newCustomers | number:'1.0-0' }}
+              </span>
+            </div>
           </div>
-        </li>
-        <li class="flex items-center space-x-3">
-          <img 
-            class="w-12 h-12 rounded-lg object-cover" 
-            src="https://res.cloudinary.com/ddqg9afsy/image/upload/v1762409908/tbehhqpenv9mzrlioerq.jpg" 
-            alt="Product">
-          <div>
-            <p class="font-medium text-gray-800">Áo Polo Trơn</p>
-            <p class="text-sm text-gray-500">Đã bán: 120</p>
+        </section>
+
+        <!-- 2. Biểu đồ (Doanh thu & Danh mục) -->
+        <section class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          
+          <!-- Biểu đồ Doanh thu theo thời gian -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Doanh thu theo thời gian</h2>
+            @if (salesOverTime() && maxRevenue()) {
+              <div class="flex justify-between items-end h-64 gap-3 px-2">
+                @for (sale of salesOverTime(); track sale.date) {
+                  <div class="flex-1 flex flex-col items-center gap-2 group">
+                    <div 
+                      class="w-full bg-blue-400 rounded-t-md hover:bg-blue-600 transition-all"
+                      [style.height.%]="(sale.revenue / maxRevenue()) * 100"
+                      [title]="(sale.revenue | currency:'VND':'symbol':'1.0-0')">
+                    </div>
+                    <span class="text-xs text-gray-500">{{ sale.date | date:'dd/MM' }}</span>
+                  </div>
+                }
+              </div>
+            }
           </div>
-        </li>
-      </ul>
-    </div>
-  </div>
+
+          <!-- Biểu đồ Doanh thu theo danh mục -->
+          <div class="bg-white rounded-xl shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Doanh thu theo danh mục</h2>
+            @if (salesByCategory() && totalCategoryRevenue()) {
+              <div class="flex flex-col gap-4 mt-6">
+                @for (cat of salesByCategory(); track cat.categoryName) {
+                  <div>
+                    <div class="flex justify-between mb-1">
+                      <span class="text-sm font-medium text-gray-700">{{ cat.categoryName }}</span>
+                      <span class="text-sm font-medium text-gray-700">{{ cat.totalRevenue | currency:'VND':'symbol':'1.0-0' }}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                      <div class="bg-green-500 h-2.5 rounded-full" 
+                           [style.width.%]="(cat.totalRevenue / totalCategoryRevenue()) * 100">
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- 3. Danh sách (Top sản phẩm & Đơn hàng gần đây) -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          
+          <!-- Top sản phẩm bán chạy -->
+          <div class="bg-white rounded-xl shadow-lg p-6 lg:col-span-1">
+            <h2 class="text-xl font-semibold mb-4">Top sản phẩm bán chạy</h2>
+            <div class="flex flex-col gap-4">
+              @for (product of topProducts(); track product.productId; let i = $index) {
+                <div class="flex items-center gap-4">
+                  <span class="flex-shrink-0 w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
+                    {{ i + 1 }}
+                  </span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm font-medium text-gray-900 truncate">{{ product.productName }}</p>
+                    <p class="text-sm text-gray-500">
+                      Đã bán: {{ product.unitsSold | number }} | 
+                      DT: {{ product.totalRevenue | currency:'VND':'symbol':'1.0-0' }}
+                    </p>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Đơn hàng gần đây -->
+          <div class="bg-white rounded-xl shadow-lg p-6 lg:col-span-2">
+            <h2 class="text-xl font-semibold mb-4">Đơn hàng gần đây</h2>
+            <div class="overflow-x-auto">
+              <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                  <tr>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mã ĐH</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Khách hàng</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ngày</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tổng tiền</th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                  @for (order of recentOrders(); track order.orderId) {
+                    <tr>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">#{{ order.orderId }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ order.customerName }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ order.orderDate | date:'dd/MM/yy HH:mm' }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">{{ order.totalAmount | currency:'VND':'symbol':'1.0-0' }}</td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                              [ngClass]="{
+                                'bg-green-100 text-green-800': order.status === 'Completed',
+                                'bg-blue-100 text-blue-800': order.status === 'Shipping',
+                                'bg-yellow-100 text-yellow-800': order.status === 'Pending'
+                              }">
+                          {{ order.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+      </div>
+    }
+  </main>
 </div>
