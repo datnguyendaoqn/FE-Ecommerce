@@ -2,11 +2,8 @@ import { Injectable } from "@angular/core";
 import { NGXLogger } from "ngx-logger";
 import { HelperService } from "src/helpers/hepler.service";
 import { axiosInstance } from "src/configs/axiosInstance";
-
- import { SellerRegistrationResponseDto } from "@dtos/seller/seller.response.dto";
- import { sellerRegistrationRequestDto } from "@dtos/seller/seller.request.dto";
-
-
+import { SellerRegistrationResponseDto } from "@dtos/seller/seller.response.dto";
+import { sellerRegistrationRequestDto } from "@dtos/seller/seller.request.dto";
 
 @Injectable({
     providedIn: "root",

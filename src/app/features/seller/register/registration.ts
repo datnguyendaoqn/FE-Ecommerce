@@ -7,20 +7,9 @@ import {
   Validators
 } from '@angular/forms';
 import { SellerService } from 'src/services/seller/seller.service';
-// import { sellerRegistrationRequestDto } from '@dtos/seller/seller.request.dto';
+import { sellerRegistrationRequestDto } from '@dtos/seller/seller.request.dto';
 import { ToastrService } from 'ngx-toastr';
 import { NGXLogger } from 'ngx-logger';
-
-interface sellerRegistrationRequestDto {
-    name: string,
-    description: string,
-    bankAccountNumber: string
-}
-
- interface SellerRegistrationResponseDto {
-    message: string,
-    shopId: number
-}
 
 @Component({
   selector: 'app-seller-registration',
