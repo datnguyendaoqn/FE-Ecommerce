@@ -9,9 +9,13 @@ import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule
 import { SellerProductService } from 'src/services/seller-product/seller-product.service';
 import { SellerProductDetailDto, SellerProductVariantDetailDto } from '@dtos/product/seller-product-detail.dto';
 
-// Import Service và DTO của Category
+// ========== SỬA LỖI: Import lại CategoryService và DTO ==========
 import { CategoryService } from 'src/services/category/category.service';
 import { RecursiveCategoryDto } from '@dtos/category/category.dto';
+// ==========================================================
+
+// Import DTO (để sửa lỗi TS2304)
+import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dto';
 
 @Component({
   selector: 'app-seller-product-form',
@@ -21,7 +25,7 @@ import { RecursiveCategoryDto } from '@dtos/category/category.dto';
     RouterModule,
     MatIcon,
     CurrencyPipe,
-    ReactiveFormsModule // <-- Import ReactiveFormsModule
+    ReactiveFormsModule 
   ],
   templateUrl: './product-form.html',
 })
@@ -32,8 +36,27 @@ export class SellerProductFormComponent implements OnInit {
   isLoading = signal(false);
   private productId = signal<number | null>(null);
 
-  // Signal để lưu danh mục (lấy từ API)
+  // ========== SỬA LỖI: Khởi tạo rỗng, không dùng MOCK DATA ==========
   categories = signal<RecursiveCategoryDto[]>([]); 
+  // ==========================================================
+
+  // Danh sách cho dropdowns (Giữ nguyên)
+  sizeOptions = [
+    "XS", "S", "M", "L", "XL", "XXL", "XXXL",
+    "Free Size", "One Size", "M/L", "L/XL",
+    "28", "29", "30", "31", "32", "33", "34", "35",
+    "36", "37", "38", "39", "40"
+  ];
+  colorOptions = [
+    "Đen", "Trắng", "Đỏ", "Xanh dương", "Xanh lá",
+    "Vàng", "Hồng", "Tím", "Nâu", "Be",
+    "Xám", "Cam", "Bạc", "Kem", "Rêu",
+    "Xanh navy", "Xanh pastel", "Xanh ngọc",
+    "Xanh mint", "Ghi", "Xanh than"
+  ];
+  
+  productImageFiles = signal<File[]>([]);
+  allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
   constructor(
     private fb: FormBuilder,
@@ -41,16 +64,16 @@ export class SellerProductFormComponent implements OnInit {
     private toastr: ToastrService,
     private route: ActivatedRoute, 
     private router: Router,
-    private categoryService: CategoryService // <-- Inject CategoryService
+    // ========== SỬA LỖI: Inject lại CategoryService ==========
+    private categoryService: CategoryService 
   ) {
-    // Khởi tạo form rỗng ban đầu
     this.productForm = this.initForm();
   }
 
   ngOnInit() {
-    this.loadCategories(); // Tải danh mục khi component khởi chạy
+    // ========== SỬA LỖI: Gọi lại hàm loadCategories ==========
+    this.loadCategories(); // Tải danh mục thật khi component khởi chạy
     
-    // Kiểm tra URL để xem đây là trang Thêm mới hay Chỉnh sửa
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = +idParam;
@@ -59,10 +82,11 @@ export class SellerProductFormComponent implements OnInit {
       this.loadProductForEdit(id);
     } else {
       this.isEditMode.set(false);
-      this.productForm = this.initForm(); // Tạo form mới
+      this.productForm = this.initForm(); 
     }
   }
 
+  // ========== SỬA LỖI: Thêm lại hàm loadCategories và flattenCategories ==========
   /**
    * Tải danh sách danh mục từ API
    */
@@ -100,44 +124,36 @@ export class SellerProductFormComponent implements OnInit {
     }
     return flatList;
   }
+  // ================================================================
 
-  /**
-   * Khởi tạo form (cho cả Thêm mới và Chỉnh sửa)
-   */
   initForm(product: SellerProductDetailDto | null = null): FormGroup {
     const form = this.fb.group({
-      // 1. Thông tin cơ bản
       name: [product?.name || '', [Validators.required, Validators.maxLength(200)]],
       description: [product?.description || ''],
       brand: [product?.brand || ''],
       categoryId: [product?.categoryId || null, [Validators.required]],
-      
-      // 3. Phân loại hàng (Variants)
+      productImages: [null, this.isEditMode() ? null : Validators.required], 
       variants: this.fb.array(
         this.isEditMode() && product 
-          ? [] // Ở chế độ Sửa, không dùng FormArray
-          : [this.createVariantGroup()] // Ở chế độ Mới, tạo 1 nhóm rỗng
+          ? [] 
+          : [this.createVariantGroup()] 
       )
     });
 
     if (this.isEditMode()) {
-      // Nếu là chế độ Sửa, khóa (disable) phần variants
       form.get('variants')?.disable();
+      form.get('productImages')?.disable(); 
     }
     
     return form;
   }
 
-  /**
-   * Tải dữ liệu sản phẩm khi ở chế độ Sửa
-   */
   async loadProductForEdit(id: number) {
     this.isLoading.set(true);
     try {
+      // Dùng hàm getProductDetail như file gốc
       const product = await this.sellerProductService.getProductDetail(id);
-      this.productForm = this.initForm(product); // Tạo form với dữ liệu
-      
-      // (Lưu riêng data variant để hiển thị read-only)
+      this.productForm = this.initForm(product); 
       this.productForm.addControl('variants_readonly', this.fb.control(product.variants));
 
     } catch (error) {
@@ -148,26 +164,21 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Tạo một FormGroup cho một biến thể (variant)
-   */
   createVariantGroup(): FormGroup {
     return this.fb.group({
       sku: ['', [Validators.required]],
-      variantSize: [''],
-      color: [''],
+      variantSize: [null], 
+      color: [null], 
       price: [1000, [Validators.required, Validators.min(1000)]],
       quantity: [0, [Validators.required, Validators.min(0)]],
-      image: [null, [Validators.required]] // Sẽ lưu File object
+      image: [null, [Validators.required]] 
     });
   }
 
-  // Getter tiện lợi để lấy FormArray
   get variantsArray(): FormArray {
     return this.productForm.get('variants') as FormArray;
   }
   
-  // Getter tiện lợi để lấy danh sách variants (chế độ Sửa)
   get variantsReadOnly(): SellerProductVariantDetailDto[] {
     return this.productForm.get('variants_readonly')?.value || [];
   }
@@ -184,26 +195,51 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Xử lý khi người dùng chọn file ảnh cho variant
-   */
-  onFileChange(event: Event, variantIndex: number) {
+  private validateFiles(files: FileList): File[] {
+    const validFiles: File[] = [];
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      if (this.allowedImageTypes.includes(file.type)) {
+        validFiles.push(file);
+      } else {
+        this.toastr.error(`File '${file.name}' có định dạng không hợp lệ. Chỉ chấp nhận JPG, PNG, JPEG.`);
+      }
+    }
+    return validFiles;
+  }
+
+  onProductFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      const file = input.files[0];
-      const variantGroup = this.variantsArray.at(variantIndex);
-      variantGroup.patchValue({ image: file });
-      variantGroup.get('image')?.updateValueAndValidity();
+      const validFiles = this.validateFiles(input.files);
+      this.productImageFiles.set(validFiles); 
+      this.productForm.patchValue({ productImages: validFiles.length > 0 ? validFiles : null });
+      this.productForm.get('productImages')?.updateValueAndValidity();
+      if (validFiles.length === 0) input.value = ''; 
     }
   }
 
-  /**
-   * Xử lý khi submit form
-   */
+  onVariantFileChange(event: Event, variantIndex: number) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const validFiles = this.validateFiles(input.files);
+      const variantGroup = this.variantsArray.at(variantIndex);
+      if (validFiles.length > 0) {
+        const file = validFiles[0]; 
+        variantGroup.patchValue({ image: file });
+        variantGroup.get('image')?.updateValueAndValidity();
+      } else {
+        variantGroup.patchValue({ image: null }); 
+        variantGroup.get('image')?.updateValueAndValidity();
+        input.value = ''; 
+      }
+    }
+  }
+
   async onSubmit() {
     if (this.productForm.invalid) {
       this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
-      this.productForm.markAllAsTouched(); // Hiển thị lỗi
+      this.productForm.markAllAsTouched(); 
       return;
     }
 
@@ -211,8 +247,7 @@ export class SellerProductFormComponent implements OnInit {
 
     try {
       if (this.isEditMode()) {
-        // ========== CHẾ ĐỘ CẬP NHẬT (PUT) ==========
-        const dto = {
+        const dto: UpdateProductRequestDto = { 
           name: this.productForm.value.name,
           description: this.productForm.value.description,
           brand: this.productForm.value.brand,
@@ -221,14 +256,13 @@ export class SellerProductFormComponent implements OnInit {
         
         await this.sellerProductService.updateProduct(this.productId()!, dto);
         this.toastr.success('Cập nhật sản phẩm thành công!');
+        this.router.navigate(['/seller/products']); 
         
       } else {
-        // ========== CHẾ ĐỘ TẠO MỚI (POST) ==========
         const formData = this.buildFormData();
         await this.sellerProductService.createProduct(formData);
-
         this.toastr.success('Tạo sản phẩm thành công!');
-        this.router.navigate(['/seller/products']); // Điều hướng về danh sách
+        this.router.navigate(['/seller/products']); 
       }
     } catch (error) {
       this.toastr.error(String(error), 'Đã xảy ra lỗi');
@@ -237,20 +271,22 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Xây dựng FormData để gửi API (cho chế độ Thêm mới)
-   */
   private buildFormData(): FormData {
     const formData = new FormData();
     const formValue = this.productForm.value;
 
-    // 1. Thêm thông tin cơ bản
     formData.append('name', formValue.name);
     formData.append('description', formValue.description || '');
     formData.append('brand', formValue.brand || '');
     formData.append('categoryId', formValue.categoryId.toString());
     
-    // 2. Thêm thông tin variants (dạng mảng)
+    const productImages = this.productForm.get('productImages')?.value as File[];
+    if (productImages) {
+      productImages.forEach((file) => {
+        formData.append(`ProductImages`, file, file.name);
+      });
+    }
+    
     this.variantsArray.controls.forEach((variantControl, index) => {
       const variant = (variantControl as FormGroup).value;
       
@@ -260,7 +296,6 @@ export class SellerProductFormComponent implements OnInit {
       formData.append(`Variants[${index}].Price`, variant.price.toString());
       formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
       
-      // Thêm file ảnh của variant
       if (variant.image instanceof File) {
         formData.append(`Variants[${index}].Image`, variant.image, variant.image.name);
       }
@@ -269,17 +304,12 @@ export class SellerProductFormComponent implements OnInit {
     return formData;
   }
 
-  /** * Helper để check lỗi form (ĐÃ SỬA)
-   * Chấp nhận AbstractControl thay vì chỉ FormGroup
-   */
   isInvalid(controlName: string, formGroup: AbstractControl | null = null): boolean {
     const form = formGroup || this.productForm;
     const control = form.get(controlName);
     return !!control && control.invalid && (control.touched || control.dirty);
   }
 
-  /** * Hàm xử lý nút Hủy (ĐÃ THÊM)
-   */
   onCancel() {
     this.router.navigate(['/seller/products']);
   }
