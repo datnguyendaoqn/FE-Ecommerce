@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
+import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ProductSummaryDto } from '@dtos/product/product';
 import { ProductDetailDto, ProductVariantDetailDto } from '@dtos/product/product-detail';
 import { ProductCardComponent } from '@shared/component/ui/product/product';
@@ -9,6 +9,9 @@ import { ReviewResponseDto } from '@dtos/review/review';
 import { reviewMocks } from 'src/data/review.data';
 import { ProductService } from 'src/services/product/product.service';
 import { productDetailMocks, productsMock } from 'src/data/product.data';
+import { CartRequestDto } from '@dtos/cart/cart.request.dto';
+import { CartService } from 'src/services/cart/cart.service';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-product-detail',
@@ -28,20 +31,55 @@ export class ProductDetailComponent implements OnInit {
   reviewCount = 0;
   activeTab: string = 'description';
 
-  constructor(private readonly productService: ProductService) {}
+  constructor(
+    private readonly route: ActivatedRoute, // 👈 Thêm ActivatedRoute
+    private readonly productService: ProductService,
+    private readonly cartService: CartService,
+    private toast: ToastrService,
+  ) { }
 
   async ngOnInit(): Promise<void> {
     this.isLoading = true;
 
     try {
-      // Gọi API lấy chi tiết sản phẩm (ví dụ id = 101)
-      const response = await this.productService.getById<ProductDetailDto>(101);
-      this.product = response;
+      const productId = Number(this.route.snapshot.paramMap.get('id'));
+
+      if (!productId || isNaN(productId)) {
+        this.loadMockData();
+        return;
+      }
+
+      // Gọi API lấy chi tiết sản phẩm
+      const response = await this.productService.getById<ProductDetailDto>(productId);
+
+      if (response && response.id) {
+        this.product = response;
+      } else {
+        throw new Error('Response không có data hợp lệ');
+      }
     } catch (error) {
-      console.error('Lỗi khi gọi API, fallback sang mock:', error);
-      this.product = productDetailMocks.data;
+      this.loadMockData();
     }
 
+    if (!this.product) {
+      this.loadMockData();
+    }
+
+    this.initializeProductData();
+  }
+
+
+  private loadMockData(): void {
+    console.log('Loading mock data...');
+    this.product = productDetailMocks.data;
+  }
+
+  private async initializeProductData(): Promise<void> {
+    // Kiểm tra product có tồn tại và có variants
+    if (!this.product || !this.product.variants || this.product.variants.length === 0) {
+      this.isLoading = false;
+      return;
+    }
     // Chọn biến thể đầu tiên (có thể filter chỉ lấy variant còn hàng)
     this.selectedVariant = this.product.variants.find(v => v.isInStock) || this.product.variants[0];
 
@@ -56,7 +94,6 @@ export class ProductDetailComponent implements OnInit {
           ? apiReviews
           : reviewMocks;
     } catch (error) {
-      console.error('⚠️ Lỗi lấy review, fallback sang mock:', error);
       this.reviews = reviewMocks;
     }
 
@@ -65,22 +102,21 @@ export class ProductDetailComponent implements OnInit {
     this.averageRating =
       this.reviewCount > 0
         ? Number(
-            (
-              this.reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) /
-              this.reviewCount
-            ).toFixed(1)
-          )
+          (
+            this.reviews.reduce((sum, r) => sum + (r.rating ?? 0), 0) /
+            this.reviewCount
+          ).toFixed(1)
+        )
         : 0;
 
     this.isLoading = false;
   }
 
   // ==== COMPUTED PROPERTIES ====
-  
-  /**
-   * Lấy ảnh chính từ variant hoặc fallback sang product
-   */
+
   get primaryImageUrl(): string {
+    if (!this.product) return 'https://placehold.co/600x600/EEE/000?text=No+Image';
+
     return (
       this.selectedVariant?.primaryImage?.imageUrl ||
       this.product?.productImages?.find(img => img.isPrimary)?.imageUrl ||
@@ -88,16 +124,11 @@ export class ProductDetailComponent implements OnInit {
     );
   }
 
-  /**
-   * Lấy danh sách ảnh gallery từ product
-   */
   get galleryImageUrls(): string[] {
-    return this.product?.productImages?.map(img => img.imageUrl) || [];
+    if (!this.product || !this.product.productImages) return [];
+    return this.product.productImages.map(img => img.imageUrl);
   }
 
-  /**
-   * Tính giá gốc (giả sử giá hiện tại đã giảm 20%)
-   */
   get originalPrice(): number {
     return this.selectedVariant?.price ? this.selectedVariant.price * 1.25 : 0;
   }
@@ -112,16 +143,27 @@ export class ProductDetailComponent implements OnInit {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
   }
 
-  addToCart(): void {
+  async addToCart(): Promise<void> {
     if (!this.selectedVariant?.isInStock) {
-      alert('Sản phẩm này hiện đã hết hàng');
+      this.toast.warning('Sản phẩm này hiện đã hết hàng', 'Cảnh báo');
       return;
     }
-    alert(`Đã thêm ${this.product.name} - ${this.selectedVariant.color} (Size ${this.selectedVariant.variantSize}) vào giỏ hàng`);
+
+    const item: CartRequestDto = {
+      productVariantId: this.selectedVariant.id,
+      quantity: 1
+    }
+
+    try {
+      await this.cartService.createCartItem(item);
+      this.toast.success("Đã thêm vào giỏ hàng", "Thành công");
+    } catch (error) {
+      this.toast.error(String(error), "Lỗi");
+    }
   }
 
   onAddToFavorite(p: ProductSummaryDto | ProductDetailDto): void {
-    alert(`Đã thêm "${p.name}" vào danh sách yêu thích!`);
+    this.toast.info(`Đã thêm "${p.name}" vào danh sách yêu thích!`, 'Yêu thích');
   }
 
   setActiveTab(tab: string): void {

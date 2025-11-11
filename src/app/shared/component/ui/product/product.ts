@@ -14,14 +14,8 @@ export class ProductCardComponent {
   @Input() product!: ProductSummaryDto;
   @Input() compact = false;
 
-  @Output() addToCart = new EventEmitter<ProductSummaryDto>();
   @Output() addToFavorite = new EventEmitter<ProductSummaryDto>();
 
-  onAddToCart(event: Event) {
-    event.preventDefault();
-    event.stopPropagation();
-    this.addToCart.emit(this.product);
-  }
 
   onAddToFavorite(event: Event) {
     event.preventDefault();

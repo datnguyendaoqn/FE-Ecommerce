@@ -10,4 +10,5 @@ export interface ProductSummaryDto {
     selledCount: number
 }
 
+
 export interface ProductPaginationDto extends ApiPaginationResponseDto<ProductSummaryDto> { }

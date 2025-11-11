@@ -8,7 +8,9 @@ export interface ApiPaginationResponseDto<T> {
     isSuccess?: boolean,
     code?: string,
     message?: string,
-    data: T,
+    data: {
+        items: T[]
+    },
     pageNumber: number,
     pageSize: number,
     totalCount: number,

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core'; 
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -12,6 +12,7 @@ import { SellerProductDetailDto, SellerProductVariantDetailDto } from '@dtos/pro
 import { CategoryService } from 'src/services/category/category.service';
 import { RecursiveCategoryDto } from '@dtos/category/category.dto';
 import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dto';
+import { NgxCurrencyInputMode, NgxCurrencyDirective, NgxCurrencyConfig } from "ngx-currency";
 
 
 @Component({
@@ -23,17 +24,27 @@ import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dt
     MatIcon,
     CurrencyPipe,
     ReactiveFormsModule,
+    NgxCurrencyDirective
   ],
   templateUrl: './product-form.html',
 })
 export class SellerProductFormComponent implements OnInit {
-  
+  currencyOptions = {
+    prefix: "",
+    suffix: " VNĐ",
+    thousands: '.',
+    align: 'left',
+    precision: 0,
+    allowNegative: false,
+    inputMode: NgxCurrencyInputMode.Financial,
+  };
+
   productForm: FormGroup;
   isEditMode = signal(false);
   isLoading = signal(false);
   private productId = signal<number | null>(null);
 
-  categories = signal<RecursiveCategoryDto[]>([]); 
+  categories = signal<RecursiveCategoryDto[]>([]);
 
   sizeOptions = [
     "XS", "S", "M", "L", "XL", "XXL", "XXXL",
@@ -48,7 +59,7 @@ export class SellerProductFormComponent implements OnInit {
     "Xanh navy", "Xanh pastel", "Xanh ngọc",
     "Xanh mint", "Ghi", "Xanh than"
   ];
-  
+
   productImageFiles = signal<File[]>([]);
   allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
@@ -56,16 +67,16 @@ export class SellerProductFormComponent implements OnInit {
     private fb: FormBuilder,
     private sellerProductService: SellerProductService,
     private toastr: ToastrService,
-    private route: ActivatedRoute, 
+    private route: ActivatedRoute,
     private router: Router,
-    private categoryService: CategoryService 
+    private categoryService: CategoryService
   ) {
     this.productForm = this.initForm();
   }
 
   ngOnInit() {
     this.loadCategories();
-    
+
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = +idParam;
@@ -74,7 +85,7 @@ export class SellerProductFormComponent implements OnInit {
       this.loadProductForEdit(id);
     } else {
       this.isEditMode.set(false);
-      this.productForm = this.initForm(); 
+      this.productForm = this.initForm();
     }
   }
 
@@ -89,12 +100,12 @@ export class SellerProductFormComponent implements OnInit {
   }
 
   private flattenCategories(
-    categories: RecursiveCategoryDto[], 
+    categories: RecursiveCategoryDto[],
     prefix = ''
   ): RecursiveCategoryDto[] {
-    
+
     let flatList: RecursiveCategoryDto[] = [];
-    
+
     for (const category of categories) {
       const categoryName = `${prefix}${category.name}`;
       flatList.push({ ...category, name: categoryName });
@@ -115,27 +126,27 @@ export class SellerProductFormComponent implements OnInit {
       description: [product?.description || ''],
       brand: [product?.brand || ''],
       categoryId: [product?.categoryId || null, [Validators.required]],
-      productImages: [null, this.isEditMode() ? null : Validators.required], 
+      productImages: [null, this.isEditMode() ? null : Validators.required],
       variants: this.fb.array(
-        this.isEditMode() && product 
-          ? [] 
-          : [this.createVariantGroup()] 
+        this.isEditMode() && product
+          ? []
+          : [this.createVariantGroup()]
       )
     });
 
     if (this.isEditMode()) {
       form.get('variants')?.disable();
-      form.get('productImages')?.disable(); 
+      form.get('productImages')?.disable();
     }
-    
+
     return form;
   }
 
   async loadProductForEdit(id: number) {
     this.isLoading.set(true);
     try {
-      const product = await this.sellerProductService.getProductDetail(id); 
-      this.productForm = this.initForm(product); 
+      const product = await this.sellerProductService.getProductDetail(id);
+      this.productForm = this.initForm(product);
       this.productForm.addControl('variants_readonly', this.fb.control(product.variants));
 
     } catch (error) {
@@ -149,19 +160,19 @@ export class SellerProductFormComponent implements OnInit {
   createVariantGroup(): FormGroup {
     return this.fb.group({
       sku: ['', [Validators.required]],
-      variantSize: [null], 
-      color: [null], 
+      variantSize: [null],
+      color: [null],
       material: [null, [Validators.required]],
       price: [1000, [Validators.required, Validators.min(1000)]],
       quantity: [0, [Validators.required, Validators.min(0)]],
-      image: [null, [Validators.required]] 
+      image: [null, [Validators.required]]
     });
   }
 
   get variantsArray(): FormArray {
     return this.productForm.get('variants') as FormArray;
   }
-  
+
   get variantsReadOnly(): SellerProductVariantDetailDto[] {
     return this.productForm.get('variants_readonly')?.value || [];
   }
@@ -195,10 +206,10 @@ export class SellerProductFormComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const validFiles = this.validateFiles(input.files);
-      this.productImageFiles.set(validFiles); 
+      this.productImageFiles.set(validFiles);
       this.productForm.patchValue({ productImages: validFiles.length > 0 ? validFiles : null });
       this.productForm.get('productImages')?.updateValueAndValidity();
-      if (validFiles.length === 0) input.value = ''; 
+      if (validFiles.length === 0) input.value = '';
     }
   }
 
@@ -208,13 +219,13 @@ export class SellerProductFormComponent implements OnInit {
       const validFiles = this.validateFiles(input.files);
       const variantGroup = this.variantsArray.at(variantIndex);
       if (validFiles.length > 0) {
-        const file = validFiles[0]; 
+        const file = validFiles[0];
         variantGroup.patchValue({ image: file });
         variantGroup.get('image')?.updateValueAndValidity();
       } else {
-        variantGroup.patchValue({ image: null }); 
+        variantGroup.patchValue({ image: null });
         variantGroup.get('image')?.updateValueAndValidity();
-        input.value = ''; 
+        input.value = '';
       }
     }
   }
@@ -222,7 +233,7 @@ export class SellerProductFormComponent implements OnInit {
   async onSubmit() {
     if (this.productForm.invalid) {
       this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
-      this.productForm.markAllAsTouched(); 
+      this.productForm.markAllAsTouched();
       return;
     }
 
@@ -230,23 +241,23 @@ export class SellerProductFormComponent implements OnInit {
 
     try {
       if (this.isEditMode()) {
-        const dto: UpdateProductRequestDto = { 
+        const dto: UpdateProductRequestDto = {
           name: this.productForm.value.name,
           description: this.productForm.value.description,
           brand: this.productForm.value.brand,
           categoryId: this.productForm.value.categoryId,
         };
-        
+
         await this.sellerProductService.updateProduct(this.productId()!, dto);
         this.toastr.success('Cập nhật sản phẩm thành công!');
-        this.router.navigate(['/seller/products']); 
-        
+        this.router.navigate(['/seller/products']);
+
       } else {
         const formData = this.buildFormData(this.productForm.value);
         await this.sellerProductService.createProduct(formData);
 
         this.toastr.success('Tạo sản phẩm thành công!');
-        this.router.navigate(['/seller/products']); 
+        this.router.navigate(['/seller/products']);
       }
     } catch (error) {
       this.toastr.error(String(error), 'Đã xảy ra lỗi');
@@ -262,22 +273,22 @@ export class SellerProductFormComponent implements OnInit {
     formData.append('description', formValue.description || '');
     formData.append('brand', formValue.brand || '');
     formData.append('categoryId', formValue.categoryId.toString());
-    
+
     const productImages = formValue.productImages as File[];
     if (productImages) {
       productImages.forEach((file) => {
         formData.append(`ProductImages`, file, file.name);
       });
     }
-    
+
     formValue.variants.forEach((variant: any, index: number) => {
       formData.append(`Variants[${index}].SKU`, variant.sku);
       formData.append(`Variants[${index}].VariantSize`, variant.variantSize || '');
       formData.append(`Variants[${index}].Color`, variant.color || '');
-      formData.append(`Variants[${index}].Material`, variant.material || ''); 
-      formData.append(`Variants[${index}].Price`, variant.price.toString()); 
+      formData.append(`Variants[${index}].Material`, variant.material || '');
+      formData.append(`Variants[${index}].Price`, variant.price.toString());
       formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
-      
+
       if (variant.image instanceof File) {
         formData.append(`Variants[${index}].Image`, variant.image, variant.image.name);
       }

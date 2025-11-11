@@ -18,7 +18,7 @@ export class HomeComponent implements OnInit {
   constructor(
     private readonly logger: LoggerService,
     private readonly productService: ProductService
-  ) {}
+  ) { }
 
   Math = Math;
 
@@ -48,10 +48,12 @@ export class HomeComponent implements OnInit {
   async fetchProducts() {
     this.loading = true;
     try {
-      const data = await this.productService.getAll();
-      if (data && data.length > 0) {
-        this.products = data;
-        this.logger.info('Đã tải sản phẩm từ API', data);
+      const data = await this.productService.getPagination();
+      this.logger.info('Đã tải sản phẩm từ API', data);
+
+      if (data && data.data.items.length > 0) {
+        this.products = data.data.items;
+        this.logger.info('Đã tải sản phẩm từ API', data.data.items);
       } else {
         this.logger.warn('API trả về rỗng, dùng dữ liệu mock');
         this.products = productsMock;
