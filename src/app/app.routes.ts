@@ -14,6 +14,7 @@ import { sellerGuard } from '@core/guards/seller.guard';
 import { SellerLayoutComponent } from '@features/seller/seller';
 import { SellerDashboardComponent } from '@features/seller/dashboard/dashboard';
 import { SellerProductListComponent } from '@features/seller/product-list/product-list';
+import { SellerRegistrationComponent } from '@features/seller/register/registration';
 // ========== THÊM IMPORT MỚI ==========
 import { SellerProductFormComponent } from '@features/seller/product-form/product-form'; 
 // ===================================
@@ -29,6 +30,7 @@ export const routes: Routes = [
       { path: 'contact', component: ContactComponent },
       { path: 'error', component: ErrorComponent },
       { path: 'cart', component: CartComponent },
+      { path: 'registration', component: SellerRegistrationComponent },
       { path: "product/:id", component: ProductDetailComponent}
     ]
   },
@@ -40,11 +42,11 @@ export const routes: Routes = [
     canActivate: [sellerGuard],      
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: SellerDashboardComponent },
+      {path: 'dashboard', component: SellerDashboardComponent },
       { path: 'products', component: SellerProductListComponent },
       // ========== THÊM 2 ROUTE MỚI ==========
       { path: 'product/new', component: SellerProductFormComponent }, // <-- Trang Thêm mới
-      { path: 'product/:id', component: SellerProductFormComponent }  // <-- Trang Chỉnh sửa
+      { path: 'product/:id', component: SellerProductFormComponent },  // <-- Trang Chỉnh sửa
       // =====================================
     ]
   },

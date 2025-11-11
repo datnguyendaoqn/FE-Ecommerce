@@ -6,6 +6,7 @@ import { selectFullName, selectIsLoggedIn, selectUserRole } from '@features/auth
 import { logout } from '@features/auth/store/auth.actions';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-header',
@@ -18,11 +19,13 @@ export class HeaderComponent {
   userRole$!: Observable<string | undefined>; 
   isMobileMenuOpen = false;
   isUserMenuOpen = false;
+  
 
-  constructor(private store: Store) {
+  constructor(private store: Store, private router: Router) {
     this.isLoggedIn$ = this.store.select(selectIsLoggedIn);
     this.userName$ = this.store.select(selectFullName);
     this.userRole$ = this.store.select(selectUserRole); 
+
   }
 
   toggleMobileMenu() {
@@ -43,6 +46,10 @@ export class HeaderComponent {
     this.closeMenus();
     localStorage.clear();
     window.location.href = '/';
+  }
+  goToSellerRegistration() {
+  this.closeMenus();
+  this.router.navigate(['/seller/registration']);
   }
 
   getInitials(name: string): string {

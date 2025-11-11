@@ -1,0 +1,67 @@
+<div class="flex items-center justify-center min-h-screen bg-gray-100 font-inter">
+    <div class="w-full max-w-lg p-8 space-y-8 bg-white rounded-xl shadow-lg">
+        <h2 class="text-3xl font-bold text-center text-gray-900">
+            Đăng ký Kênh Bán Hàng
+        </h2>
+        <p class="text-center text-gray-600">
+            Hãy cung cấp thông tin về shop của bạn để bắt đầu.
+        </p>
+
+        <!-- Form Đăng Ký -->
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+            <div class="space-y-6">
+                <!-- Tên Shop -->
+                <div>
+                    <label for="name" class="block text-sm font-medium text-gray-700">Tên Shop</label>
+                    <input id="name" type="text" formControlName="name"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Ví dụ: Shop Quần Áo XYZ">
+                    @if (registerForm.get('name')?.invalid && registerForm.get('name')?.touched) {
+                    <p class="mt-1 text-xs text-red-600">Tên shop là bắt buộc (tối thiểu 5 ký tự).</p>
+                    }
+                </div>
+
+                <!-- Mô tả -->
+                <div>
+                    <label for="description" class="block text-sm font-medium text-gray-700">Mô tả Shop</label>
+                    <textarea id="description" formControlName="description" rows="4"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Giới thiệu về các sản phẩm của bạn..."></textarea>
+                </div>
+
+                <!-- Số tài khoản -->
+                <div>
+                    <label for="bankAccountNumber" class="block text-sm font-medium text-gray-700">Số Tài Khoản Ngân
+                        Hàng</label>
+                    <input id="bankAccountNumber" type="text" formControlName="bankAccountNumber"
+                        class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                        placeholder="Số tài khoản để nhận thanh toán (9-14 số)">
+                    @if (registerForm.get('bankAccountNumber')?.invalid &&
+                    registerForm.get('bankAccountNumber')?.touched) {
+                    <p class="mt-1 text-xs text-red-600">Số tài khoản không hợp lệ (chỉ nhập số, 9-14 ký tự).</p>
+                    }
+                </div>
+
+                <!-- Nút Submit -->
+                <div>
+                    <button type="submit" [disabled]="loading() || registerForm.invalid"
+                        class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                        @if (loading()) {
+                        <div class="animate-spin rounded-full h-5 w-5 border-t-2 border-b-2 border-white"></div>
+                        } @else {
+                        <span>Đăng ký và Bán hàng ngay</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Thông báo lỗi chung -->
+        @if (error()) {
+        <div class="mt-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg" role="alert">
+            <strong class="font-bold">Đã xảy ra lỗi:</strong>
+            <span class="block sm:inline">{{ error() }}</span>
+        </div>
+        }
+    </div>
+</div>
