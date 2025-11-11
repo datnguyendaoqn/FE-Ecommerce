@@ -1,8 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core'; 
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { SellerProductService } from 'src/services/seller-product/seller-product.service';
@@ -10,8 +11,8 @@ import { SellerProductDetailDto, SellerProductVariantDetailDto } from '@dtos/pro
 
 import { CategoryService } from 'src/services/category/category.service';
 import { RecursiveCategoryDto } from '@dtos/category/category.dto';
-
 import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dto';
+
 
 @Component({
   selector: 'app-seller-product-form',
@@ -21,7 +22,7 @@ import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dt
     RouterModule,
     MatIcon,
     CurrencyPipe,
-    ReactiveFormsModule 
+    ReactiveFormsModule,
   ],
   templateUrl: './product-form.html',
 })
@@ -57,14 +58,13 @@ export class SellerProductFormComponent implements OnInit {
     private toastr: ToastrService,
     private route: ActivatedRoute, 
     private router: Router,
-
     private categoryService: CategoryService 
   ) {
     this.productForm = this.initForm();
   }
 
   ngOnInit() {
-    this.loadCategories(); 
+    this.loadCategories();
     
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
@@ -134,7 +134,7 @@ export class SellerProductFormComponent implements OnInit {
   async loadProductForEdit(id: number) {
     this.isLoading.set(true);
     try {
-      const product = await this.sellerProductService.getProductDetail(id);
+      const product = await this.sellerProductService.getProductDetail(id); 
       this.productForm = this.initForm(product); 
       this.productForm.addControl('variants_readonly', this.fb.control(product.variants));
 
@@ -151,6 +151,7 @@ export class SellerProductFormComponent implements OnInit {
       sku: ['', [Validators.required]],
       variantSize: [null], 
       color: [null], 
+      material: [null, [Validators.required]],
       price: [1000, [Validators.required, Validators.min(1000)]],
       quantity: [0, [Validators.required, Validators.min(0)]],
       image: [null, [Validators.required]] 
@@ -241,8 +242,9 @@ export class SellerProductFormComponent implements OnInit {
         this.router.navigate(['/seller/products']); 
         
       } else {
-        const formData = this.buildFormData();
+        const formData = this.buildFormData(this.productForm.value);
         await this.sellerProductService.createProduct(formData);
+
         this.toastr.success('Tạo sản phẩm thành công!');
         this.router.navigate(['/seller/products']); 
       }
@@ -253,29 +255,27 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  private buildFormData(): FormData {
+  private buildFormData(formValue: any): FormData {
     const formData = new FormData();
-    const formValue = this.productForm.value;
 
     formData.append('name', formValue.name);
     formData.append('description', formValue.description || '');
     formData.append('brand', formValue.brand || '');
     formData.append('categoryId', formValue.categoryId.toString());
     
-    const productImages = this.productForm.get('productImages')?.value as File[];
+    const productImages = formValue.productImages as File[];
     if (productImages) {
       productImages.forEach((file) => {
         formData.append(`ProductImages`, file, file.name);
       });
     }
     
-    this.variantsArray.controls.forEach((variantControl, index) => {
-      const variant = (variantControl as FormGroup).value;
-      
+    formValue.variants.forEach((variant: any, index: number) => {
       formData.append(`Variants[${index}].SKU`, variant.sku);
       formData.append(`Variants[${index}].VariantSize`, variant.variantSize || '');
       formData.append(`Variants[${index}].Color`, variant.color || '');
-      formData.append(`Variants[${index}].Price`, variant.price.toString());
+      formData.append(`Variants[${index}].Material`, variant.material || ''); 
+      formData.append(`Variants[${index}].Price`, variant.price.toString()); 
       formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
       
       if (variant.image instanceof File) {
@@ -285,7 +285,6 @@ export class SellerProductFormComponent implements OnInit {
 
     return formData;
   }
-
 
   isInvalid(controlName: string, formGroup: AbstractControl | null = null): boolean {
     const form = formGroup || this.productForm;
