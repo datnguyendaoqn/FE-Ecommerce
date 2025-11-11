@@ -5,16 +5,12 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AbstractControl, FormArray, FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-// Import DTO và Service
 import { SellerProductService } from 'src/services/seller-product/seller-product.service';
 import { SellerProductDetailDto, SellerProductVariantDetailDto } from '@dtos/product/seller-product-detail.dto';
 
-// ========== SỬA LỖI: Import lại CategoryService và DTO ==========
 import { CategoryService } from 'src/services/category/category.service';
 import { RecursiveCategoryDto } from '@dtos/category/category.dto';
-// ==========================================================
 
-// Import DTO (để sửa lỗi TS2304)
 import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dto';
 
 @Component({
@@ -36,11 +32,8 @@ export class SellerProductFormComponent implements OnInit {
   isLoading = signal(false);
   private productId = signal<number | null>(null);
 
-  // ========== SỬA LỖI: Khởi tạo rỗng, không dùng MOCK DATA ==========
   categories = signal<RecursiveCategoryDto[]>([]); 
-  // ==========================================================
 
-  // Danh sách cho dropdowns (Giữ nguyên)
   sizeOptions = [
     "XS", "S", "M", "L", "XL", "XXL", "XXXL",
     "Free Size", "One Size", "M/L", "L/XL",
@@ -64,15 +57,14 @@ export class SellerProductFormComponent implements OnInit {
     private toastr: ToastrService,
     private route: ActivatedRoute, 
     private router: Router,
-    // ========== SỬA LỖI: Inject lại CategoryService ==========
+
     private categoryService: CategoryService 
   ) {
     this.productForm = this.initForm();
   }
 
   ngOnInit() {
-    // ========== SỬA LỖI: Gọi lại hàm loadCategories ==========
-    this.loadCategories(); // Tải danh mục thật khi component khởi chạy
+    this.loadCategories(); 
     
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
@@ -86,14 +78,9 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  // ========== SỬA LỖI: Thêm lại hàm loadCategories và flattenCategories ==========
-  /**
-   * Tải danh sách danh mục từ API
-   */
   async loadCategories() {
     try {
       const categoryTree = await this.categoryService.getAllCategories();
-      // API trả về dạng cây, chúng ta "làm phẳng" (flatten) cây này
       const flatCategories = this.flattenCategories(categoryTree);
       this.categories.set(flatCategories);
     } catch (error) {
@@ -101,9 +88,6 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-  /**
-   * Helper (Đệ quy) để làm phẳng cây danh mục cho dropdown
-   */
   private flattenCategories(
     categories: RecursiveCategoryDto[], 
     prefix = ''
@@ -124,7 +108,6 @@ export class SellerProductFormComponent implements OnInit {
     }
     return flatList;
   }
-  // ================================================================
 
   initForm(product: SellerProductDetailDto | null = null): FormGroup {
     const form = this.fb.group({
@@ -151,7 +134,6 @@ export class SellerProductFormComponent implements OnInit {
   async loadProductForEdit(id: number) {
     this.isLoading.set(true);
     try {
-      // Dùng hàm getProductDetail như file gốc
       const product = await this.sellerProductService.getProductDetail(id);
       this.productForm = this.initForm(product); 
       this.productForm.addControl('variants_readonly', this.fb.control(product.variants));
@@ -303,6 +285,7 @@ export class SellerProductFormComponent implements OnInit {
 
     return formData;
   }
+
 
   isInvalid(controlName: string, formGroup: AbstractControl | null = null): boolean {
     const form = formGroup || this.productForm;
