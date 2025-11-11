@@ -19,7 +19,7 @@ export class SellerProductService extends BaseApiService<any, any> {
         protected override readonly helper: HelperService,
         protected override readonly logger: NGXLogger
     ) {
-        super("/product", helper, logger);
+        super("/products", helper, logger);
     }
 
     async getMyProducts(): Promise<SellerProductSummaryDto[]> {
