@@ -1,5 +1,4 @@
-<p>cart works!</p>
-<div class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 min-h-screen">
+<div class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 min-h-screen mt-4">
   <div class="max-w-7xl mx-auto px-4 py-16">
     <h1 class="text-4xl md:text-5xl font-black text-primary-800 mb-12 text-center">
       Giỏ hàng của bạn
@@ -8,12 +7,21 @@
     @if (cartItems().length > 0) {
     <div class="grid lg:grid-cols-3 gap-12">
       <div class="lg:col-span-2 bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-6 md:p-8">
-        <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">
-          Chi tiết sản phẩm ({{ cartItems().length }})
-        </h2>
+        <div class="flex flex-row justify-between items-center">
+          <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">
+            Chi tiết sản phẩm ({{ totalItemsCount() }})
+          </h2>
+          <button
+            (click)="removeAll()"
+            class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium transition-colors mb-6 pb-4"
+          >
+            <mat-icon class="text-lg">delete_sweep</mat-icon>
+            <span>Xóa tất cả</span>
+          </button>
+        </div>
 
         <div class="space-y-8">
-          @for (item of cartItems(); track item.id) {
+          @for (item of cartItems(); track item.productVariantId) {
           <div class="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-8">
             <div class="flex-shrink-0">
               <img
@@ -31,15 +39,11 @@
                   {{ item.productName }}
                 </a>
                 <p class="text-sm text-gray-500 mt-1">
-                  Size: <span class="font-medium text-gray-700">{{ item.variantSize }}</span> | Màu:
-                  <span class="font-medium text-gray-700">{{ item.color }}</span>
-                </p>
-                <p class="text-sm text-gray-500">
-                  Tồn kho: <span class="font-medium text-gray-700">{{ item.stock }}</span>
+                  SKU: <span class="font-medium text-gray-700">{{ item.sku }}</span>
                 </p>
               </div>
               <div class="text-lg font-bold text-primary-600 mt-2">
-                {{ item.price | currency : 'VND' : 'đ' }}
+                {{ item.priceAtTimeOfAdd | currency : 'VND' : 'symbol' : '1.0-0' }}₫
               </div>
             </div>
             <div class="flex flex-col md:items-end justify-between">
@@ -59,14 +63,13 @@
                 />
                 <button
                   (click)="updateQuantity(item, 1)"
-                  [disabled]="item.quantity >= item.stock"
-                  class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                  class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
                 >
                   <mat-icon>add</mat-icon>
                 </button>
               </div>
               <button
-                (click)="removeItem(item.id)"
+                (click)="removeItem(item.productVariantId)"
                 class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium mt-4 md:mt-0"
               >
                 <mat-icon class="text-lg">delete_outline</mat-icon>
@@ -85,19 +88,13 @@
             <div class="flex justify-between text-gray-600">
               <span>Tạm tính</span>
               <span class="font-medium text-gray-800">
-                {{ subtotal() | currency : 'VND' : 'đ' }}
-              </span>
-            </div>
-            <div class="flex justify-between text-gray-600">
-              <span>Phí vận chuyển</span>
-              <span class="font-medium text-gray-800">
-                {{ shippingFee() | currency : 'VND' : 'đ' }}
+                {{ subtotal() | currency : 'VND' : 'symbol' : '1.0-0' }}
               </span>
             </div>
           </div>
           <div class="flex justify-between text-xl font-bold text-gray-900 border-t pt-4 mt-4">
             <span>Tổng cộng</span>
-            <span>{{ total() | currency : 'VND' : 'đ' }}</span>
+            <span>{{ total() | currency : 'VND' : 'symbol' : '1.0-0' }}</span>
           </div>
 
           <button
@@ -111,7 +108,7 @@
     </div>
     } @else {
     <div class="text-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-16">
-      <mat-icon class="text-2xl text-primary-200 mb-6">shopping_cart_off</mat-icon>
+      <mat-icon class="text-2xl text-primary-200 mb-6">shopping_cart</mat-icon>
       <h2 class="text-3xl font-bold text-gray-800 mb-4">Giỏ hàng của bạn đang trống</h2>
       <p class="text-gray-600 mb-8">Hãy quay lại trang chủ để bắt đầu mua sắm nào!</p>
       <a

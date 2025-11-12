@@ -14,7 +14,7 @@ export class CategoryService extends BaseApiService<any, any> {
         protected override readonly helper: HelperService,
         protected override readonly logger: NGXLogger
     ) {
-        super("/category", helper, logger);
+        super("/categories", helper, logger);
     }
 
     async getAllCategories(): Promise<RecursiveCategoryDto[]> {

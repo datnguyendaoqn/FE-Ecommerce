@@ -45,7 +45,6 @@
         [product]="p"
         [attr.data-aos]="'fade-up'"
         [attr.data-aos-delay]="i * 100"
-        (addToCart)="handleAddToCart($event)"
         (addToFavorite)="handleAddToFavorite($event)"
         class="transform hover:-translate-y-2 transition-all duration-300"
       ></app-product-card>
@@ -130,7 +129,6 @@
         [compact]="true"
         [attr.data-aos]="'fade-up'"
         [attr.data-aos-delay]="(i % 8) * 50"
-        (addToCart)="handleAddToCart($event)"
         (addToFavorite)="handleAddToFavorite($event)"
         class="transform hover:-translate-y-2 transition-all duration-300"
       ></app-product-card>

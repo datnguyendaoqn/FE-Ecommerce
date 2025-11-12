@@ -11,7 +11,7 @@ import { ReviewApiResponseDto } from '@dtos/review/review';
 })
 export class ProductService extends BaseApiService<ProductSummaryDto, ProductSummaryDto> {
     constructor(helper: HelperService, logger: NGXLogger) {
-        super('/product', helper, logger);
+        super('/products', helper, logger);
     }
 
     async getReviewProduct(productId: number) {
