@@ -4,101 +4,146 @@
       Giỏ hàng của bạn
     </h1>
 
-    @if (cartItems().length > 0) {
+    @if (shops().length > 0) {
     <div class="grid lg:grid-cols-3 gap-12">
-      <div class="lg:col-span-2 bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-6 md:p-8">
-        <div class="flex flex-row justify-between items-center">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">
-            Chi tiết sản phẩm ({{ totalItemsCount() }})
-          </h2>
-          <button
-            (click)="removeAll()"
-            class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium transition-colors mb-6 pb-4"
-          >
-            <mat-icon class="text-lg">delete_sweep</mat-icon>
-            <span>Xóa tất cả</span>
-          </button>
-        </div>
-
-        <div class="space-y-8">
-          @for (item of cartItems(); track item.productVariantId) {
-          <div class="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-8">
-            <div class="flex-shrink-0">
-              <img
-                [src]="item.imageUrl"
-                [alt]="item.productName"
-                class="w-full md:w-32 h-32 object-cover rounded-lg border"
-              />
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Lặp qua từng shop -->
+        @for (shop of shops(); track shop.shopId) {
+        <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-6 md:p-8">
+          <!-- Header của shop -->
+          <div class="flex items-center justify-between mb-6 pb-4 border-b">
+            <div class="flex items-center gap-3">
+              <mat-checkbox
+                [checked]="shop.selected"
+                [indeterminate]="isShopIndeterminate(shop)"
+                (change)="toggleShop(shop.shopId)"
+                color="primary"
+                class="mr-2"
+              ></mat-checkbox>
+              <mat-icon class="text-primary-600">store</mat-icon>
+              <h2 class="text-xl font-semibold text-gray-800">
+                {{ shop.shopName }}
+              </h2>
             </div>
-            <div class="flex-1 flex flex-col justify-between">
-              <div>
-                <a
-                  href="#"
-                  class="text-lg font-semibold text-gray-800 hover:text-primary-600 transition-colors"
-                >
-                  {{ item.productName }}
-                </a>
-                <p class="text-sm text-gray-500 mt-1">
-                  SKU: <span class="font-medium text-gray-700">{{ item.sku }}</span>
-                </p>
-              </div>
-              <div class="text-lg font-bold text-primary-600 mt-2">
-                {{ item.priceAtTimeOfAdd | currency : 'VND' : 'symbol' : '1.0-0' }}₫
-              </div>
-            </div>
-            <div class="flex flex-col md:items-end justify-between">
-              <div class="flex items-center border-2 border-gray-200 rounded-full overflow-hidden">
-                <button
-                  (click)="updateQuantity(item, -1)"
-                  [disabled]="item.quantity <= 1"
-                  class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
-                >
-                  <mat-icon>remove</mat-icon>
-                </button>
-                <input
-                  type="text"
-                  [value]="item.quantity"
-                  readonly
-                  class="w-12 text-center font-semibold text-gray-800 border-none focus:ring-0"
-                />
-                <button
-                  (click)="updateQuantity(item, 1)"
-                  class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
-                >
-                  <mat-icon>add</mat-icon>
-                </button>
-              </div>
-              <button
-                (click)="removeItem(item.productVariantId)"
-                class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium mt-4 md:mt-0"
-              >
-                <mat-icon class="text-lg">delete_outline</mat-icon>
-                <span>Xóa</span>
-              </button>
-            </div>
+            <span class="text-sm text-gray-500">
+              {{ shop.items.length }} sản phẩm
+            </span>
           </div>
-          }
+
+          <!-- Danh sách sản phẩm của shop -->
+          <div class="space-y-6">
+            @for (item of shop.items; track item.productVariantId) {
+            <div class="flex flex-col md:flex-row gap-6 border-b border-gray-100 pb-6 last:border-0">
+              <div class="flex items-start gap-4 flex-1">
+                <mat-checkbox
+                  [checked]="item.selected"
+                  (change)="toggleItem(shop.shopId, item.productVariantId)"
+                  color="primary"
+                  class="mt-2"
+                ></mat-checkbox>
+                <div class="flex-shrink-0">
+                  <img
+                    [src]="item.imageUrl"
+                    [alt]="item.productName"
+                    class="w-full md:w-32 h-32 object-cover rounded-lg border"
+                  />
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <a
+                      href="#"
+                      class="text-lg font-semibold text-gray-800 hover:text-primary-600 transition-colors"
+                    >
+                      {{ item.productName }}
+                    </a>
+                    <p class="text-sm text-gray-500 mt-1">
+                      SKU: <span class="font-medium text-gray-700">{{ item.sku }}</span>
+                    </p>
+                  </div>
+                  <div class="text-lg font-bold text-primary-600 mt-2">
+                    {{ item.priceAtTimeOfAdd | currency : 'VND' : 'symbol' : '1.0-0' }}₫
+                  </div>
+                </div>
+              </div>
+              <div class="flex flex-col md:items-end justify-between">
+                <div class="flex items-center border-2 border-gray-200 rounded-full overflow-hidden">
+                  <button
+                    (click)="updateQuantity(item, -1)"
+                    [disabled]="item.quantity <= 1"
+                    class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 disabled:opacity-50 transition-colors"
+                  >
+                    <mat-icon>remove</mat-icon>
+                  </button>
+                  <input
+                    type="text"
+                    [value]="item.quantity"
+                    readonly
+                    class="w-12 text-center font-semibold text-gray-800 border-none focus:ring-0"
+                  />
+                  <button
+                    (click)="updateQuantity(item, 1)"
+                    class="w-10 h-10 flex items-center justify-center text-gray-600 hover:bg-gray-100 transition-colors"
+                  >
+                    <mat-icon>add</mat-icon>
+                  </button>
+                </div>
+                <button
+                  (click)="removeItem(item.productVariantId)"
+                  class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium mt-4 md:mt-0"
+                >
+                  <mat-icon class="text-lg">delete_outline</mat-icon>
+                  <span>Xóa</span>
+                </button>
+              </div>
+            </div>
+            }
+          </div>
+
+          <!-- Subtotal của shop -->
+          <div class="flex justify-between items-center mt-6 pt-4 border-t">
+            <span class="text-gray-600 font-medium">Tổng tiền theo cửa hàng:</span>
+            <span class="text-lg font-bold text-primary-600">
+              {{ shop.subTotalPrice | currency : 'VND' : 'symbol' : '1.0-0' }}₫
+            </span>
+          </div>
         </div>
+        }
       </div>
 
+      <!-- Tóm tắt đơn hàng -->
       <div class="lg:col-span-1">
         <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-8 sticky top-28">
-          <h2 class="text-2xl font-semibold text-gray-800 mb-6 border-b pb-4">Tóm tắt đơn hàng</h2>
+          <div class="flex justify-between items-center mb-6 pb-4 border-b">
+            <h2 class="text-2xl font-semibold text-gray-800">Tóm tắt đơn hàng</h2>
+            <button
+              (click)="removeAll()"
+              class="flex items-center gap-1 text-sm text-danger-600 hover:text-danger-800 font-medium transition-colors"
+              title="Xóa tất cả"
+            >
+              <mat-icon class="text-lg">delete_sweep</mat-icon>
+            </button>
+          </div>
+
           <div class="space-y-4 mb-6">
             <div class="flex justify-between text-gray-600">
-              <span>Tạm tính</span>
-              <span class="font-medium text-gray-800">
-                {{ subtotal() | currency : 'VND' : 'symbol' : '1.0-0' }}
-              </span>
+              <span>Sản phẩm đã chọn</span>
+              <span class="font-medium text-gray-800">{{ selectedItemsCount() }} / {{ totalItemsCount() }}</span>
+            </div>
+            <div class="flex justify-between text-gray-600">
+              <span>Cửa hàng đã chọn</span>
+              <span class="font-medium text-gray-800">{{ selectedShopsCount() }} / {{ shops().length }}</span>
             </div>
           </div>
+
           <div class="flex justify-between text-xl font-bold text-gray-900 border-t pt-4 mt-4">
             <span>Tổng cộng</span>
-            <span>{{ total() | currency : 'VND' : 'symbol' : '1.0-0' }}</span>
+            <span>{{ selectedTotalPrice() | currency : 'VND' : 'symbol' : '1.0-0' }}₫</span>
           </div>
 
           <button
-            class="w-full mt-8 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-4 rounded-xl shadow-button hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2"
+            (click)="proceedToCheckout()"
+            [disabled]="!hasSelectedItems()"
+            class="w-full mt-8 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-4 rounded-xl shadow-button hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
           >
             <span>Tiến hành Thanh toán</span>
             <mat-icon>arrow_forward</mat-icon>
@@ -108,12 +153,12 @@
     </div>
     } @else {
     <div class="text-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-16">
-      <mat-icon class="text-2xl text-primary-200 mb-6">shopping_cart</mat-icon>
+      <mat-icon class="text-9xl text-primary-200 mb-6">shopping_cart</mat-icon>
       <h2 class="text-3xl font-bold text-gray-800 mb-4">Giỏ hàng của bạn đang trống</h2>
       <p class="text-gray-600 mb-8">Hãy quay lại trang chủ để bắt đầu mua sắm nào!</p>
       <a
         routerLink="/"
-        class="bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 px-8 rounded-full shadow-button hover:shadow-xl transition-all duration-300"
+        class="inline-block bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 px-8 rounded-full shadow-button hover:shadow-xl transition-all duration-300"
       >
         Về Trang chủ
       </a>
@@ -121,3 +166,4 @@
     }
   </div>
 </div>
+

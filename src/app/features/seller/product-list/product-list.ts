@@ -4,6 +4,9 @@ import { MatIcon } from '@angular/material/icon';
 import { RouterModule } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '@shared/component/ui/confirm-dialog/confirm-dialog';
+
 import { SellerProductSummaryDto } from '@dtos/product/seller-product-summary.dto';
 import { SellerProductService } from 'src/services/seller-product/seller-product.service';
 
@@ -20,7 +23,8 @@ export class SellerProductListComponent implements OnInit {
 
   constructor(
     private sellerProductService: SellerProductService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private dialog: MatDialog 
   ) {}
 
   ngOnInit() {
@@ -39,18 +43,28 @@ export class SellerProductListComponent implements OnInit {
     }
   }
 
-  onDeleteProduct(productId: number) {
-    if (confirm('Bạn có chắc muốn xóa sản phẩm này? (Chưa cài đặt)')) {
-      // TODO: Gọi service xóa khi API sẵn sàng
-      // try {
-      //   await this.sellerProductService.deleteProduct(productId);
-      //   this.toastr.success('Xóa sản phẩm thành công');
-      //   this.loadProducts(); // Tải lại danh sách
-      // } catch (error) {
-      //   this.toastr.error(String(error), 'Lỗi xóa sản phẩm');
-      // }
-      this.toastr.info('Chức năng xóa chưa được cài đặt', 'Thông báo');
-    }
+  async onDeleteProduct(productId: number, productName: string) { 
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '450px',
+      data: {
+        title: 'Xác nhận Xóa Sản phẩm',
+        message: `Bạn có chắc muốn XÓA sản phẩm:<br><b>"${productName}" (ID: ${productId})</b>?<br>Toàn bộ các biến thể của nó cũng sẽ bị xóa.`,
+        confirmText: 'Đồng ý Xóa',
+        cancelText: 'Hủy'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      if (result === true) { 
+        try {
+          await this.sellerProductService.deleteProduct(productId);
+          this.toastr.success('Xóa sản phẩm thành công');
+          this.loadProducts(); 
+        } catch (error) {
+          this.toastr.error(String(error), 'Lỗi xóa sản phẩm');
+        }
+      }
+    });
   }
 
   getStatusClass(status: string): string {

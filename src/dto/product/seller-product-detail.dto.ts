@@ -1,5 +1,16 @@
 import { ApiResponseDto } from "@dtos/api/api.response.dto";
 
+export interface ProductMediaDto {
+  id: number;
+  imageUrl: string;
+  isPrimary: boolean;
+}
+
+export interface VariantMediaDto {
+  id: number;
+  imageUrl: string;
+}
+
 export interface SellerProductVariantDetailDto {
   id: number;
   sku: string;
@@ -8,7 +19,7 @@ export interface SellerProductVariantDetailDto {
   material: string | null;
   price: number;
   quantity: number;
-  primaryImageUrl: string | null;
+  primaryImage: VariantMediaDto | null;
 }
 
 export interface SellerProductDetailDto {
@@ -20,8 +31,9 @@ export interface SellerProductDetailDto {
   categoryName: string;
   shopId: number;
   status: string;
-  primaryImageUrl: string | null;
-  galleryImageUrls: string[];
+
+  productImages: ProductMediaDto[]; 
+
   variants: SellerProductVariantDetailDto[];
 }
 

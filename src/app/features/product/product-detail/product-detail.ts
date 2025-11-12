@@ -12,6 +12,8 @@ import { productDetailMocks, productsMock } from 'src/data/product.data';
 import { CartRequestDto } from '@dtos/cart/cart.request.dto';
 import { CartService } from 'src/services/cart/cart.service';
 import { ToastrService } from 'ngx-toastr';
+import { Store } from '@ngrx/store';
+import { addCart } from '@features/auth/store/cart.actions';
 
 @Component({
   selector: 'app-product-detail',
@@ -32,10 +34,12 @@ export class ProductDetailComponent implements OnInit {
   activeTab: string = 'description';
 
   constructor(
-    private readonly route: ActivatedRoute, // 👈 Thêm ActivatedRoute
+    private readonly route: ActivatedRoute,
     private readonly productService: ProductService,
     private readonly cartService: CartService,
     private toast: ToastrService,
+    private store: Store,
+
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -157,6 +161,7 @@ export class ProductDetailComponent implements OnInit {
     try {
       await this.cartService.createCartItem(item);
       this.toast.success("Đã thêm vào giỏ hàng", "Thành công");
+      this.store.dispatch(addCart())
     } catch (error) {
       this.toast.error(String(error), "Lỗi");
     }
