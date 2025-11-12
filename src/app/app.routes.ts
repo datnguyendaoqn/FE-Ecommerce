@@ -17,6 +17,7 @@ import { SellerProductListComponent } from '@features/seller/product-list/produc
 import { SellerRegistrationComponent } from '@features/seller/register/registration';
 // ========== THÊM IMPORT MỚI ==========
 import { SellerProductFormComponent } from '@features/seller/product-form/product-form'; 
+import { SellerOrderListComponent } from '@features/seller/order-list/order-list';
 // ===================================
 
 
@@ -44,10 +45,9 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       {path: 'dashboard', component: SellerDashboardComponent },
       { path: 'products', component: SellerProductListComponent },
-      // ========== THÊM 2 ROUTE MỚI ==========
-      { path: 'product/new', component: SellerProductFormComponent }, // <-- Trang Thêm mới
-      { path: 'product/:id', component: SellerProductFormComponent },  // <-- Trang Chỉnh sửa
-      // =====================================
+      { path: 'product/new', component: SellerProductFormComponent }, 
+      { path: 'product/:id', component: SellerProductFormComponent },
+      { path: 'orders', component: SellerOrderListComponent }  
     ]
   },
   // =================== KẾT THÚC ROUTE SELLER ===================

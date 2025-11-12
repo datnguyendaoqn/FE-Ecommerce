@@ -22,7 +22,7 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
 
     async getCart(): Promise<CartResponseDto> {
         try {
-            const res = await axiosInstance.get<CartResponseDto>(`${this.baseUrl}${this.endpoint}`)
+            const res = await axiosInstance.get<CartResponseDto>(this.endpoint)
             return res.data
         } catch (error) {
             throw this.helper.ThrowError(error)
@@ -32,7 +32,7 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
 
     async createCartItem(cartItemRequestDto: CartRequestDto): Promise<boolean | undefined> {
         try {
-            const res = await axiosInstance.post<ApiResponseDto>(`${this.baseUrl}${this.endpoint}/items`, cartItemRequestDto)
+            const res = await axiosInstance.post<ApiResponseDto>(`${this.endpoint}/items`, cartItemRequestDto)
             if (res.data.isSuccess) {
                 return res.data.isSuccess
             }
@@ -45,7 +45,7 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
 
     async deleteCartItem(variantId: number): Promise<boolean | undefined> {
         try {
-            const res = await axiosInstance.delete<ApiResponseDto>(`${this.baseUrl}${this.endpoint}/items/${variantId}`)
+            const res = await axiosInstance.delete<ApiResponseDto>(`${this.endpoint}/items/${variantId}`)
             if (res.data.isSuccess) {
                 return res.data.isSuccess
             }
@@ -57,7 +57,7 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
 
     async deleteAll(): Promise<boolean | undefined> {
         try {
-            const res = await axiosInstance.delete<ApiResponseDto>(`${this.baseUrl}${this.endpoint}`)
+            const res = await axiosInstance.delete<ApiResponseDto>(this.endpoint)
             if (res.data.isSuccess) {
                 return res.data.isSuccess
             }
@@ -66,5 +66,4 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
             throw this.helper.ThrowError(error)
         }
     }
-
 }

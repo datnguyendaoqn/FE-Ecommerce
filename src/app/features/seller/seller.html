@@ -39,13 +39,14 @@
       </a>
 
       <a
-        href="#"
-        class="flex items-center py-3 px-6 text-gray-400 cursor-not-allowed"
+        routerLink="/seller/orders"
+        routerLinkActive="bg-primary-50 text-primary-600 border-r-4 border-primary-500"
+        class="flex items-center py-3 px-6 text-gray-600 hover:bg-primary-50 hover:text-primary-600 transition-colors"
       >
         <mat-icon class="mr-4">receipt_long</mat-icon>
         <span [ngClass]="{ 'hidden': isSidebarMinimized }">Quản lý Đơn hàng</span>
       </a>
-    </nav>
+      </nav>
 
     <div class="border-t p-4">
       <button

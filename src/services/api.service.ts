@@ -12,16 +12,13 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
     protected readonly logger: NGXLogger
   ) { }
 
-  protected get baseUrl() {
-    return this.helper.getBaseUrl();
-  }
-
+  
   async getAll(): Promise<ResponseDto[]> {
     try {
       const res = await axiosInstance.get<{ data: ResponseDto[] }>(
-        `${this.baseUrl}${this.endpoint}`
+        this.endpoint
       );
-      this.logger.debug(`GET ALL → ${this.baseUrl}${this.endpoint}`, res.data);
+      this.logger.debug(`GET ALL → ${this.endpoint}`, res.data);
       return res.data.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -31,9 +28,9 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
   async getById<T = ResponseDto>(id: number): Promise<T> {
     try {
       const res = await axiosInstance.get<{ data: T }>(
-        `${this.baseUrl}${this.endpoint}/${id}`
+        `${this.endpoint}/${id}`
       );
-      this.logger.debug(`GET BY ID → ${this.baseUrl}${this.endpoint}/${id}`, res.data);
+      this.logger.debug(`GET BY ID → ${this.endpoint}/${id}`, res.data);
       return res.data.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -42,18 +39,15 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
 
   async getPagination(pageNumber: number = 1, pageSize: number = 10): Promise<PaginationResponseDto> {
     try {
-      const res = await axiosInstance.get(
-        `${this.baseUrl}${this.endpoint}`,
+      const res = await axiosInstance.post(
+        `${this.endpoint}/pagination`,
         {
-          params: {
-            pageNumber,
-            pageSize
-          }
-
+          pageNumber,
+          pageSize
         }
       );
-      this.logger.debug(`GET PAGINATION → ${this.baseUrl}${this.endpoint}/pagination`, res.data);
-      return res.data;
+      this.logger.debug(`GET PAGINATION → ${this.endpoint}/pagination`, res.data);
+      return res.data.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
     }
@@ -62,10 +56,10 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
   async create(dto: RequestDto): Promise<ResponseDto> {
     try {
       const res = await axiosInstance.post(
-        `${this.baseUrl}${this.endpoint}`,
+        this.endpoint,
         dto
       );
-      this.logger.debug(`CREATE → ${this.baseUrl}${this.endpoint}`, res.data);
+      this.logger.debug(`CREATE → ${this.endpoint}`, res.data);
       return res.data.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -75,10 +69,10 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
   async update(id: string | number, dto: Partial<RequestDto>): Promise<ResponseDto> {
     try {
       const res = await axiosInstance.put(
-        `${this.baseUrl}${this.endpoint}/${id}`,
+        `${this.endpoint}/${id}`,
         dto
       );
-      this.logger.debug(`UPDATE → ${this.baseUrl}${this.endpoint}/${id}`, res.data);
+      this.logger.debug(`UPDATE → ${this.endpoint}/${id}`, res.data);
       return res.data.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -87,8 +81,8 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
 
   async delete(id: string | number): Promise<void> {
     try {
-      await axiosInstance.delete(`${this.baseUrl}${this.endpoint}/${id}`);
-      this.logger.debug(`DELETE → ${this.baseUrl}${this.endpoint}/${id}`);
+      await axiosInstance.delete(`${this.endpoint}/${id}`);
+      this.logger.debug(`DELETE → ${this.endpoint}/${id}`);
     } catch (error) {
       throw this.helper.ThrowError(error);
     }
