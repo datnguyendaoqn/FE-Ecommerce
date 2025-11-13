@@ -6,6 +6,7 @@ import { axiosInstance } from "src/configs/axiosInstance";
 import { LoginRequestDto } from "@dtos/login/login.request.dto";
 import { RegisterRequestDto } from "@dtos/register/register.request.dto";
 import { RegisterResponseDto } from "@dtos/register/register.response.dto";
+import { AuthGetInforResponseDto } from "@dtos/auth/auth.response.dto";
 
 @Injectable({
     providedIn: "root",
@@ -40,6 +41,15 @@ export class AuthService {
         try {
             const res = await axiosInstance.post(`${this.endPoint}/register`, registerRequestDto)
             return res.data as RegisterResponseDto
+        } catch (error) {
+            throw this.helper.ThrowError(error)
+        }
+    }
+
+    async getInforMe(): Promise<AuthGetInforResponseDto> {
+        try {
+            const res = await axiosInstance.get(`${this.endPoint}/me`,)
+            return res.data
         } catch (error) {
             throw this.helper.ThrowError(error)
         }

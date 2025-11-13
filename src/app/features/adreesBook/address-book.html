@@ -1,0 +1,260 @@
+<div class="bg-gradient-to-br from-primary-50 via-white to-secondary-50 min-h-screen mt-4">
+  <div class="max-w-6xl mx-auto px-4 py-16">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-12">
+      <div>
+        <h1 class="text-4xl md:text-5xl font-black text-primary-800 mb-2">
+          Địa chỉ
+        </h1>
+        <p class="text-gray-600">Quản lý địa chỉ giao hàng của bạn</p>
+      </div>
+      <button
+        (click)="openForm()"
+        class="flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 px-6 rounded-xl shadow-button hover:shadow-xl transition-all duration-300"
+      >
+        <mat-icon>add</mat-icon>
+        <span>Thêm địa chỉ mới</span>
+      </button>
+    </div>
+
+    <!-- Form thêm/sửa địa chỉ -->
+    @if (showForm()) {
+    <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-8 mb-8">
+      <div class="flex items-center justify-between mb-6 pb-4 border-b">
+        <h2 class="text-2xl font-semibold text-gray-800">
+          {{ editingId() ? 'Chỉnh sửa địa chỉ' : 'Thêm địa chỉ mới' }}
+        </h2>
+        <button
+          (click)="closeForm()"
+          class="text-gray-400 hover:text-gray-600 transition-colors"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <form [formGroup]="addressForm" (ngSubmit)="saveAddress()">
+        <div class="grid md:grid-cols-2 gap-6">
+          <!-- Họ và tên -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Họ và tên <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="fullName"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+              placeholder="Nhập họ và tên"
+            />
+            @if (hasError('fullName', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng nhập họ và tên</p>
+            }
+            @if (hasError('fullName', 'minlength')) {
+            <p class="text-red-500 text-sm mt-1">Họ tên phải có ít nhất 2 ký tự</p>
+            }
+          </div>
+
+          <!-- Số điện thoại -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Số điện thoại <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="tel"
+              formControlName="phone"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+              placeholder="Nhập số điện thoại"
+            />
+            @if (hasError('phone', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng nhập số điện thoại</p>
+            }
+            @if (hasError('phone', 'pattern')) {
+            <p class="text-red-500 text-sm mt-1">Số điện thoại không hợp lệ (10-11 số)</p>
+            }
+          </div>
+
+          <!-- Tỉnh/Thành phố -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Tỉnh/Thành phố <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="provinceCode"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+            >
+              <option value="">Chọn Tỉnh/Thành phố</option>
+              @for (province of provinces(); track province.code) {
+              <option [value]="province.code">{{ province.name }}</option>
+              }
+            </select>
+            @if (hasError('provinceCode', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng chọn Tỉnh/Thành phố</p>
+            }
+          </div>
+
+          <!-- Quận/Huyện -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Quận/Huyện <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="districtCode"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+              [disabled]="!getFormControl('provinceCode')?.value"
+            >
+              <option value="">Chọn Quận/Huyện</option>
+              @for (district of districts(); track district.code) {
+              <option [value]="district.code">{{ district.name }}</option>
+              }
+            </select>
+            @if (hasError('districtCode', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng chọn Quận/Huyện</p>
+            }
+          </div>
+
+          <!-- Phường/Xã -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Phường/Xã <span class="text-red-500">*</span>
+            </label>
+            <select
+              formControlName="wardCode"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+              [disabled]="!getFormControl('districtCode')?.value"
+            >
+              <option value="">Chọn Phường/Xã</option>
+              @for (ward of wards(); track ward.code) {
+              <option [value]="ward.code">{{ ward.name }}</option>
+              }
+            </select>
+            @if (hasError('wardCode', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng chọn Phường/Xã</p>
+            }
+          </div>
+
+          <!-- Địa chỉ cụ thể -->
+          <div class="md:col-span-2">
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Địa chỉ cụ thể <span class="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              formControlName="addressLine"
+              class="w-full px-4 py-3 border-2 border-gray-200 rounded-lg focus:border-primary-500 focus:ring-0 transition-colors"
+              placeholder="Số nhà, tên đường..."
+            />
+            @if (hasError('addressLine', 'required')) {
+            <p class="text-red-500 text-sm mt-1">Vui lòng nhập địa chỉ cụ thể</p>
+            }
+            @if (hasError('addressLine', 'minlength')) {
+            <p class="text-red-500 text-sm mt-1">Địa chỉ phải có ít nhất 5 ký tự</p>
+            }
+          </div>
+
+          <!-- Đặt làm mặc định -->
+          <div class="md:col-span-2">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <mat-checkbox formControlName="isDefault" color="primary"></mat-checkbox>
+              <span class="text-sm font-medium text-gray-700">Đặt làm địa chỉ mặc định</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Form actions -->
+        <div class="flex gap-4 mt-8 pt-6 border-t">
+          <button
+            type="button"
+            (click)="closeForm()"
+            class="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-colors"
+          >
+            Hủy
+          </button>
+          <button
+            type="submit"
+            [disabled]="loading()"
+            class="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 rounded-xl shadow-button hover:shadow-xl transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {{ loading() ? 'Đang lưu...' : (editingId() ? 'Cập nhật' : 'Thêm mới') }}
+          </button>
+        </div>
+      </form>
+    </div>
+    }
+
+    <!-- Danh sách địa chỉ -->
+    @if (loading() && addresses().length === 0) {
+    <div class="text-center py-16">
+      <mat-icon class="text-6xl text-primary-300 animate-spin">sync</mat-icon>
+      <p class="text-gray-600 mt-4">Đang tải...</p>
+    </div>
+    } @else if (addresses().length === 0) {
+    <div class="text-center bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-16">
+      <mat-icon class="text-9xl text-primary-200 mb-6">location_off</mat-icon>
+      <h2 class="text-3xl font-bold text-gray-800 mb-4">Chưa có địa chỉ nào</h2>
+      <p class="text-gray-600 mb-8">Hãy thêm địa chỉ giao hàng đầu tiên của bạn!</p>
+      <button
+        (click)="openForm()"
+        class="inline-flex items-center gap-2 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white font-bold py-3 px-8 rounded-full shadow-button hover:shadow-xl transition-all duration-300"
+      >
+        <mat-icon>add</mat-icon>
+        <span>Thêm địa chỉ mới</span>
+      </button>
+    </div>
+    } @else {
+    <div class="grid md:grid-cols-2 gap-6">
+      @for (address of addresses(); track address.id) {
+      <div class="bg-white/90 backdrop-blur-sm rounded-2xl shadow-card p-6 hover:shadow-lg transition-shadow">
+        <!-- Header -->
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <h3 class="text-lg font-bold text-gray-800">{{ address.fullName }}</h3>
+              @if (address.isDefault) {
+              <span class="px-3 py-1 bg-primary-100 text-primary-700 text-xs font-semibold rounded-full">
+                Mặc định
+              </span>
+              }
+            </div>
+            <p class="text-gray-600">{{ address.phone }}</p>
+          </div>
+          <div class="flex gap-2">
+            <button
+              (click)="editAddress(address)"
+              class="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+              title="Chỉnh sửa"
+            >
+              <mat-icon class="text-xl">edit</mat-icon>
+            </button>
+            <button
+              (click)="deleteAddress(address.id)"
+              [disabled]="address.isDefault"
+              class="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Xóa"
+            >
+              <mat-icon class="text-xl">delete</mat-icon>
+            </button>
+          </div>
+        </div>
+
+        <!-- Địa chỉ -->
+        <div class="mb-4 pb-4 border-b">
+          <div class="flex items-start gap-2 text-gray-600">
+            <mat-icon class="text-xl mt-0.5">location_on</mat-icon>
+            <p class="flex-1">{{ getFullAddress(address) }}</p>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        @if (!address.isDefault) {
+        <button
+          (click)="setDefault(address.id)"
+          class="w-full py-2 border-2 border-primary-600 text-primary-600 font-semibold rounded-lg hover:bg-primary-50 transition-colors"
+        >
+          Đặt làm mặc định
+        </button>
+        }
+      </div>
+      }
+    </div>
+    }
+  </div>
+</div>

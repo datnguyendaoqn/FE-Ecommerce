@@ -145,7 +145,7 @@ export class DashboardService {
     DashboardService // Cung cấp service
   ],
   // THAY ĐỔI: Sử dụng template và styles (inline)
-  template: './dashboard.html',
+  templateUrl: './dashboard.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SellerDashboardComponent implements OnInit {

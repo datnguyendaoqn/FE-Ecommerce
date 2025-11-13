@@ -7,6 +7,9 @@ import { logout } from '@features/auth/store/auth.actions';
 import { Store } from '@ngrx/store';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { selectCartCount } from '@features/auth/store/cart.selector';
+import { AuthService } from 'src/services/auth/auth.service';
+import { loadCartFailure, loadCartSuccess } from '@features/auth/store/cart.actions';
 
 @Component({
   selector: 'app-header',
@@ -16,16 +19,31 @@ import { Router } from '@angular/router';
 export class HeaderComponent {
   isLoggedIn$!: Observable<boolean>;
   userName$!: Observable<string | undefined>;
-  userRole$!: Observable<string | undefined>; 
+  userRole$!: Observable<string | undefined>;
+  count$!: Observable<number | undefined>;
   isMobileMenuOpen = false;
   isUserMenuOpen = false;
-  
 
-  constructor(private store: Store, private router: Router) {
+
+  constructor(private store: Store, private router: Router, private authService: AuthService) {
     this.isLoggedIn$ = this.store.select(selectIsLoggedIn);
     this.userName$ = this.store.select(selectFullName);
-    this.userRole$ = this.store.select(selectUserRole); 
+    this.userRole$ = this.store.select(selectUserRole);
+    this.count$ = this.store.select(selectCartCount)
 
+  }
+
+  async ngOnInit(): Promise<void> {
+    await this.loadAuthInfor()
+  }
+
+  async loadAuthInfor() {
+    try {
+      const res = await this.authService.getInforMe()
+      this.store.dispatch(loadCartSuccess({ cartItemCount: res.data.cartItemCount }))
+    } catch {
+      this.store.dispatch(loadCartFailure())
+    }
   }
 
   toggleMobileMenu() {
@@ -48,8 +66,8 @@ export class HeaderComponent {
     window.location.href = '/';
   }
   goToSellerRegistration() {
-  this.closeMenus();
-  this.router.navigate(['/seller/registration']);
+    this.closeMenus();
+    this.router.navigate(['/seller/registration']);
   }
 
   getInitials(name: string): string {

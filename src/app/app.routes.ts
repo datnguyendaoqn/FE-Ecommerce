@@ -2,7 +2,7 @@ import { Routes } from '@angular/router';
 import { LoginComponent } from './features/auth/login/login';
 import { RegisterComponent } from './features/auth/register/register';
 import { AboutComponent } from './features/about/about';
-import { HomeComponent } from './features/home/home'; 
+import { HomeComponent } from './features/home/home';
 import { ErrorComponent } from './shared/error/error';
 import { MainLayoutComponent } from './app';
 import { CartComponent } from '@features/cart/cart';
@@ -16,38 +16,40 @@ import { SellerDashboardComponent } from '@features/seller/dashboard/dashboard';
 import { SellerProductListComponent } from '@features/seller/product-list/product-list';
 import { SellerRegistrationComponent } from '@features/seller/register/registration';
 // ========== THÊM IMPORT MỚI ==========
-import { SellerProductFormComponent } from '@features/seller/product-form/product-form'; 
+import { SellerOrderListComponent } from '@features/seller/order-list/order-list';
+import { SellerProductFormComponent } from '@features/seller/product-form/product-form';
+import { AddressBookComponent } from '@features/adreesBook/adress-book';
 // ===================================
 
 
 export const routes: Routes = [
   {
     path: '',
-    component: MainLayoutComponent, 
+    component: MainLayoutComponent,
     children: [
-      { path: '', component: HomeComponent }, 
+      { path: '', component: HomeComponent },
       { path: 'about', component: AboutComponent },
       { path: 'contact', component: ContactComponent },
       { path: 'error', component: ErrorComponent },
       { path: 'cart', component: CartComponent },
       { path: 'registration', component: SellerRegistrationComponent },
-      { path: "product/:id", component: ProductDetailComponent}
+      { path: "product/:id", component: ProductDetailComponent },
+      { path: "address-books", component: AddressBookComponent }
     ]
   },
-  
+
   // =================== ROUTE SELLER HOÀN CHỈNH ===================
   {
     path: 'seller',
-    component: SellerLayoutComponent, 
-    canActivate: [sellerGuard],      
+    component: SellerLayoutComponent,
+    canActivate: [sellerGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      {path: 'dashboard', component: SellerDashboardComponent },
+      { path: 'dashboard', component: SellerDashboardComponent },
       { path: 'products', component: SellerProductListComponent },
-      // ========== THÊM 2 ROUTE MỚI ==========
-      { path: 'product/new', component: SellerProductFormComponent }, // <-- Trang Thêm mới
-      { path: 'product/:id', component: SellerProductFormComponent },  // <-- Trang Chỉnh sửa
-      // =====================================
+      { path: 'product/new', component: SellerProductFormComponent },
+      { path: 'product/:id', component: SellerProductFormComponent },
+      { path: 'orders', component: SellerOrderListComponent }
     ]
   },
   // =================== KẾT THÚC ROUTE SELLER ===================
