@@ -10,6 +10,7 @@ import { Router } from '@angular/router';
 import { selectCartCount } from '@features/auth/store/cart.selector';
 import { AuthService } from 'src/services/auth/auth.service';
 import { loadCartFailure, loadCartSuccess } from '@features/auth/store/cart.actions';
+import { HelperService } from 'src/helpers/hepler.service';
 
 @Component({
   selector: 'app-header',
@@ -25,7 +26,7 @@ export class HeaderComponent {
   isUserMenuOpen = false;
 
 
-  constructor(private store: Store, private router: Router, private authService: AuthService) {
+  constructor(private store: Store, private router: Router, private authService: AuthService, private readonly helperService: HelperService) {
     this.isLoggedIn$ = this.store.select(selectIsLoggedIn);
     this.userName$ = this.store.select(selectFullName);
     this.userRole$ = this.store.select(selectUserRole);
@@ -39,8 +40,12 @@ export class HeaderComponent {
 
   async loadAuthInfor() {
     try {
-      const res = await this.authService.getInforMe()
-      this.store.dispatch(loadCartSuccess({ cartItemCount: res.data.cartItemCount }))
+      const dataUser = this.helperService.getInforUser()
+      if (dataUser) {
+        const res = await this.authService.getInforMe()
+        this.store.dispatch(loadCartSuccess({ cartItemCount: res.data.cartItemCount }))
+      }
+
     } catch {
       this.store.dispatch(loadCartFailure())
     }

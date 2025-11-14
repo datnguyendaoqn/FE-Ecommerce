@@ -40,24 +40,22 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
     }
   }
 
-  async getPagination(pageNumber: number = 1, pageSize: number = 10): Promise<PaginationResponseDto> {
+  async getPagination(pageNumber: number = 1, pageSize: number = 10, filter: any = {}): Promise<PaginationResponseDto> {
     try {
-      const res = await axiosInstance.get(
-        `${this.baseUrl}${this.endpoint}`,
-        {
-          params: {
-            pageNumber,
-            pageSize
-          }
+      const params = { pageNumber, pageSize, ...filter }
+      this.logger.debug("params: ", params)
+      const res = await axiosInstance.get(`${this.baseUrl}${this.endpoint}`, {
+        params
+      });
 
-        }
-      );
-      this.logger.debug(`GET PAGINATION → ${this.baseUrl}${this.endpoint}/pagination`, res.data);
+      this.logger.debug(`GET PAGINATION → ${this.baseUrl}${this.endpoint}`, res.data);
       return res.data;
+
     } catch (error) {
       throw this.helper.ThrowError(error);
     }
   }
+
 
   async create(dto: RequestDto): Promise<ResponseDto> {
     try {
