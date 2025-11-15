@@ -1,6 +1,6 @@
 import { CartResponseDto } from "@dtos/cart/cart.response.dto";
 import { BaseApiService } from "../api.service";
-import { CartRequestDto } from "@dtos/cart/cart.request.dto";
+import { CartRequestDto, CartUpdateRequestDtp } from "@dtos/cart/cart.request.dto";
 import { HelperService } from "src/helpers/hepler.service";
 import { NGXLogger } from "ngx-logger";
 import { axiosInstance } from "src/configs/axiosInstance";
@@ -32,6 +32,18 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
     async createCartItem(cartItemRequestDto: CartRequestDto): Promise<boolean | undefined> {
         try {
             const res = await axiosInstance.post<ApiResponseDto>(`${this.endpoint}/items`, cartItemRequestDto)
+            if (res.data.isSuccess) {
+                return res.data.isSuccess
+            }
+            return false
+        } catch (error) {
+            throw this.helper.ThrowError(error)
+        }
+    }
+
+    async updateQuantityCartItem(cartItemRequestDto: CartUpdateRequestDtp): Promise<boolean | undefined> {
+        try {
+            const res = await axiosInstance.put<ApiResponseDto>(`${this.endpoint}/items`, cartItemRequestDto)
             if (res.data.isSuccess) {
                 return res.data.isSuccess
             }
