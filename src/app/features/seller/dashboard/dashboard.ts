@@ -1,222 +1,219 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal, Injectable } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
-import { HttpClient, HttpClientModule } from '@angular/common/http';
-import { Observable, forkJoin, of } from 'rxjs';
-import { catchError, tap } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
+import { BaseChartDirective } from 'ng2-charts';
+import { ChartConfiguration, ChartData, registerables } from 'chart.js';
+import { firstValueFrom } from 'rxjs';
 
-// =======================================================================
-// 1. ĐỊNH NGHĨA CÁC DTO (Interfaces)
-// =======================================================================
-// Các interface này khớp với DTOs ở backend của bạn
-
-export interface DashboardSummaryDTO {
-  totalRevenue: number;
-  totalValidOrders: number;
-  totalUnitsSold: number;
-  newCustomers: number;
-}
-
-export interface SalesOverTimeDTO {
-  date: string; // ISO date string (ví dụ: "2024-10-27")
-  revenue: number;
-  orderCount: number;
-}
-
-export interface TopProductDTO {
-  productId: number;
-  productName: string;
-  unitsSold: number;
-  totalRevenue: number;
-}
-
-export interface CategorySalesDTO {
-  categoryName: string;
-  totalRevenue: number;
-}
-
-export interface RecentOrderDTO {
-  orderId: number;
-  customerName: string;
-  orderDate: string; // ISO date string
-  totalAmount: number;
-  status: string;
-}
-
-// =======================================================================
-// 2. DỊCH VỤ (SERVICE) ĐỂ GỌI API
-// =======================================================================
-// Service này được cung cấp ngay trong component
-@Injectable() 
-export class DashboardService {
-  private http = inject(HttpClient);
-  private baseUrl = '/api/dashboard'; // URL API cơ sở của bạn
-
-  // --- DỮ LIỆU GIẢ LẬP (MOCK DATA) ĐỂ PREVIEW ---
-  // Xóa phần này và bỏ comment các hàm http.get() khi dùng API thật
-
-  private MOCK_SUMMARY: DashboardSummaryDTO = {
-    totalRevenue: 1_250_000_000,
-    totalValidOrders: 1320,
-    totalUnitsSold: 2890,
-    newCustomers: 78,
-  };
-
-  private MOCK_SALES_OVER_TIME: SalesOverTimeDTO[] = [
-    { date: '2024-10-21', revenue: 15_000_000, orderCount: 12 },
-    { date: '2024-10-22', revenue: 22_000_000, orderCount: 15 },
-    { date: '2024-10-23', revenue: 18_000_000, orderCount: 14 },
-    { date: '2024-10-24', revenue: 30_000_000, orderCount: 20 },
-    { date: '2024-10-25', revenue: 25_000_000, orderCount: 18 },
-    { date: '2024-10-26', revenue: 42_000_000, orderCount: 25 },
-    { date: '2024-10-27', revenue: 35_000_000, orderCount: 22 },
-  ];
-
-  private MOCK_TOP_PRODUCTS: TopProductDTO[] = [
-    { productId: 1, productName: 'Áo Sơ Mi Nam Vải Lụa', unitsSold: 520, totalRevenue: 250_000_000 },
-    { productId: 2, productName: 'Quần Jeans Nữ Skinny', unitsSold: 310, totalRevenue: 180_000_000 },
-    { productId: 3, productName: 'Giày Thể Thao Chạy Bộ', unitsSold: 150, totalRevenue: 120_000_000 },
-    { productId: 4, productName: 'Đồng Hồ Thông Minh T1000', unitsSold: 80, totalRevenue: 95_000_000 },
-  ];
-
-  private MOCK_CATEGORY_SALES: CategorySalesDTO[] = [
-    { categoryName: 'Thời trang Nam', totalRevenue: 450_000_000 },
-    { categoryName: 'Thời trang Nữ', totalRevenue: 320_000_000 },
-    { categoryName: 'Thiết bị điện tử', totalRevenue: 210_000_000 },
-    { categoryName: 'Đồ gia dụng', totalRevenue: 150_000_000 },
-  ];
-
-  private MOCK_RECENT_ORDERS: RecentOrderDTO[] = [
-    { orderId: 1025, customerName: 'Nguyễn Văn A', orderDate: '2024-10-27T10:30:00Z', totalAmount: 1_200_000, status: 'Completed' },
-    { orderId: 1024, customerName: 'Trần Thị B', orderDate: '2024-10-27T09:15:00Z', totalAmount: 850_000, status: 'Completed' },
-    { orderId: 1023, customerName: 'Lê Văn C', orderDate: '2024-10-26T15:45:00Z', totalAmount: 2_500_000, status: 'Shipping' },
-    { orderId: 1022, customerName: 'Phạm Thị D', orderDate: '2024-10-26T11:20:00Z', totalAmount: 450_000, status: 'Completed' },
-  ];
-
-  // --- CÁC HÀM GỌI API THẬT ---
-  // (Hiện đang dùng mock data, hãy thay thế bằng http.get)
-
-  getSummary(from: Date, to: Date): Observable<DashboardSummaryDTO> {
-    // BỎ COMMENT KHI DÙNG THẬT:
-    // const params = { from: from.toISOString(), to: to.toISOString() };
-    // return this.http.get<DashboardSummaryDTO>(`${this.baseUrl}/summary`, { params });
-    return of(this.MOCK_SUMMARY);
-  }
-
-  getSalesOverTime(from: Date, to: Date): Observable<SalesOverTimeDTO[]> {
-    // BỎ COMMENT KHI DÙNG THẬT:
-    // const params = { from: from.toISOString(), to: to.toISOString() };
-    // return this.http.get<SalesOverTimeDTO[]>(`${this.baseUrl}/sales-over-time`, { params });
-    return of(this.MOCK_SALES_OVER_TIME);
-  }
-
-  getTopSellingProducts(from: Date, to: Date, count: number): Observable<TopProductDTO[]> {
-    // BỎ COMMENT KHI DÙNG THẬT:
-    // const params = { from: from.toISOString(), to: to.toISOString(), count: count.toString() };
-    // return this.http.get<TopProductDTO[]>(`${this.baseUrl}/top-products`, { params });
-    return of(this.MOCK_TOP_PRODUCTS);
-  }
-
-  getSalesByCategory(from: Date, to: Date): Observable<CategorySalesDTO[]> {
-    // BỎ COMMENT KHI DÙNG THẬT:
-    // const params = { from: from.toISOString(), to: to.toISOString() };
-    // return this.http.get<CategorySalesDTO[]>(`${this.baseUrl}/sales-by-category`, { params });
-    return of(this.MOCK_CATEGORY_SALES);
-  }
-
-  getRecentOrders(count: number): Observable<RecentOrderDTO[]> {
-    // BỎ COMMENT KHI DÙNG THẬT:
-    // const params = { count: count.toString() };
-    // return this.http.get<RecentOrderDTO[]>(`${this.baseUrl}/recent-orders`, { params });
-    return of(this.MOCK_RECENT_ORDERS);
-  }
-}
-
-// =======================================================================
-// 3. COMPONENT CHÍNH (APP-SELLER-DASHBOARD)
-// =======================================================================
+import { DashboardService } from 'src/services/seller-dashboard/Dashboard.service';
+import {
+  CategorySalesResponse,
+  DashboardSummaryResponse,
+  RecentOrderResponse,
+  SalesOverTimeResponse,
+  TopProductResponse,
+} from '@dtos/dashboard/dashboard.response.dto';
 @Component({
-  selector: 'app-seller-dashboard', // Tên component là 'app-seller-dashboard'
+  selector: 'app-seller-dashboard',
   standalone: true,
   imports: [
-    CommonModule, 
-    HttpClientModule // Cần cho service
+    CommonModule,
+    FormsModule,
+    BaseChartDirective,
+    CurrencyPipe,
+    DecimalPipe,
+    DatePipe,
   ],
   providers: [
-    DashboardService // Cung cấp service
+    DashboardService,
+    DatePipe,
   ],
-  // THAY ĐỔI: Sử dụng template và styles (inline)
-  templateUrl: './dashboard.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './dashboard.html'
 })
-export class SellerDashboardComponent implements OnInit {
-  // === 4. KHỞI TẠO STATE VÀ SERVICE ===
+export class DashboardComponent implements OnInit {
   private dashboardService = inject(DashboardService);
+  private datePipe = inject(DatePipe);
 
-  // Tín hiệu (Signals) cho trạng thái
-  loading = signal<boolean>(true);
-  error = signal<string | null>(null);
+  // Filters
+  public fromDate: string;
+  public toDate: string;
+  public topNCount: number = 5;
+  public recentOrdersCount: number = 10;
 
-  // Tín hiệu cho 5 nguồn dữ liệu
-  summary = signal<DashboardSummaryDTO | null>(null);
-  salesOverTime = signal<SalesOverTimeDTO[] | null>(null);
-  topProducts = signal<TopProductDTO[] | null>(null);
-  salesByCategory = signal<CategorySalesDTO[] | null>(null);
-  recentOrders = signal<RecentOrderDTO[] | null>(null);
+  // Data
+  public summary?: DashboardSummaryResponse;
+  public topProducts: TopProductResponse[] = [];
+  public recentOrders: RecentOrderResponse[] = [];
 
-  // Tín hiệu tính toán (Computed Signals) cho biểu đồ
-  // Tính toán doanh thu cao nhất để chia tỷ lệ biểu đồ
-  maxRevenue = computed(() => {
-    const sales = this.salesOverTime();
-    if (!sales || sales.length === 0) return 1; // Tránh chia cho 0
-    return Math.max(...sales.map(s => s.revenue));
-  });
+  // Loading
+  public isLoadingSummary = false;
+  public isLoadingSalesOverTime = false;
+  public isLoadingTopProducts = false;
+  public isLoadingCategorySales = false;
+  public isLoadingRecentOrders = false;
+  public errorMessage?: string;
 
-  // Tính tổng doanh thu của tất cả danh mục
-  totalCategoryRevenue = computed(() => {
-    const categories = this.salesByCategory();
-    if (!categories) return 1;
-    return categories.reduce((total, cat) => total + cat.totalRevenue, 0);
-  });
+  // Bar chart
+  public barChartOptions: ChartConfiguration<'bar'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: { y: { beginAtZero: true, ticks: { color: '#6b7280' } }, x: { ticks: { color: '#6b7280' } } },
+    plugins: { legend: { position: 'top', labels: { color: '#111827' } } },
+  };
+  public barChartData: ChartData<'bar'> = {
+    labels: [],
+    datasets: [
+      { data: [], label: 'Doanh thu', backgroundColor: '#3b82f6' },
+      { data: [], label: 'Đơn hàng', backgroundColor: '#a855f7' },
+    ],
+  };
 
+  // Pie chart
+  public pieChartOptions: ChartConfiguration<'pie'>['options'] = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: { legend: { display: true, position: 'top', labels: { color: '#111827' } } },
+  };
+  public pieChartData: ChartData<'pie'> = {
+    labels: [],
+    datasets: [
+      {
+        data: [],
+        backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#eab308', '#a855f7', '#f97316'],
+        hoverBackgroundColor: ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#ea580c'],
+      },
+    ],
+  };
 
-  ngOnInit(): void {
-    this.loadDashboardData();
+  constructor() {
+    const today = new Date();
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(today.getDate() - 30);
+
+    this.toDate = this.formatDateForInput(today);
+    this.fromDate = this.formatDateForInput(thirtyDaysAgo);
   }
 
-  // === 5. LOGIC TẢI DỮ LIỆU ===
-  loadDashboardData(): void {
-    this.loading.set(true);
-    this.error.set(null);
+  ngOnInit(): void {
+    this.loadAllDashboardData();
+  }
 
-    // Ngày mặc định (ví dụ: 30 ngày qua)
-    const to = new Date();
-    const from = new Date();
-    from.setDate(to.getDate() - 30);
+  private formatDateForInput(date: Date): string {
+    return this.datePipe.transform(date, 'yyyy-MM-dd') || '';
+  }
 
-    // Gọi tất cả 5 API song song
-    forkJoin({
-      summary: this.dashboardService.getSummary(from, to),
-      salesOverTime: this.dashboardService.getSalesOverTime(from, to),
-      topProducts: this.dashboardService.getTopSellingProducts(from, to, 5), // Lấy top 5
-      salesByCategory: this.dashboardService.getSalesByCategory(from, to),
-      recentOrders: this.dashboardService.getRecentOrders(5) // Lấy 5 đơn gần nhất
-    }).pipe(
-      tap(() => this.loading.set(false)), // Tắt loading khi xong
-      catchError((err) => {
-        // Xử lý lỗi
-        this.error.set('Không thể tải dữ liệu dashboard. Vui lòng thử lại.');
-        this.loading.set(false);
-        return of(null); // Hoàn thành observable
-      })
-    ).subscribe((result) => {
-      if (result) {
-        // Cập nhật tất cả tín hiệu (signals)
-        this.summary.set(result.summary);
-        this.salesOverTime.set(result.salesOverTime);
-        this.topProducts.set(result.topProducts);
-        this.salesByCategory.set(result.salesByCategory);
-        this.recentOrders.set(result.recentOrders);
-      }
-    });
+  public async loadAllDashboardData(): Promise<void> {
+    this.errorMessage = undefined;
+    this.isLoadingSummary = this.isLoadingSalesOverTime = this.isLoadingCategorySales = true;
+    this.isLoadingTopProducts = this.isLoadingRecentOrders = true;
+
+    try {
+      await Promise.all([
+        this.loadSummary(this.fromDate, this.toDate),
+        this.loadSalesOverTime(this.fromDate, this.toDate),
+        this.loadSalesByCategory(this.fromDate, this.toDate),
+        this.loadTopProducts(this.fromDate, this.toDate, this.topNCount),
+        this.loadRecentOrders(this.recentOrdersCount),
+      ]);
+    } catch (error) {
+      console.error('Một hoặc nhiều tác vụ dashboard đã thất bại', error);
+    }
+  }
+
+  async loadSummary(from: string, to: string): Promise<void> {
+    this.isLoadingSummary = true;
+    try {
+      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
+      const data = await this.dashboardService.getDashboardSummary({ from, to });
+      // SỬA LỖI 17: Gán 'data' (là DashboardSummary) cho 'this.summary'
+      this.summary = data; 
+    } catch (err) {
+      this.handleError(err, 'tổng quan');
+    } finally {
+      this.isLoadingSummary = false;
+    }
+  }
+
+  async loadSalesOverTime(from: string, to: string): Promise<void> {
+    this.isLoadingSalesOverTime = true;
+    try {
+      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
+      const data = await this.dashboardService.getSalesOverTime({ from, to });
+      // SỬA LỖI 18: Gán 'data' (là SalesOverTime[]) cho 'this.updateBarChart'
+      this.updateBarChart(data);
+    } catch (err) {
+      this.handleError(err, 'doanh thu theo thời gian');
+    } finally {
+      this.isLoadingSalesOverTime = false;
+    }
+  }
+
+  async loadTopProducts(from: string, to: string, topN: number): Promise<void> {
+    this.isLoadingTopProducts = true;
+    try {
+      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
+      const data = await this.dashboardService.getTopProducts({ from, to, topN });
+      // SỬA LỖI 19: Gán 'data' (là TopProduct[]) cho 'this.topProducts'
+      this.topProducts = data;
+    } catch (err) {
+      this.handleError(err, 'sản phẩm bán chạy');
+    } finally {
+      this.isLoadingTopProducts = false;
+    }
+  }
+
+  async loadSalesByCategory(from: string, to: string): Promise<void> {
+    this.isLoadingCategorySales = true;
+    try {
+      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
+      const data = await this.dashboardService.getCategorySales({ from, to });
+      // SỬA LỖI 20: Gán 'data' (là CategorySales[]) cho 'this.updatePieChart'
+      this.updatePieChart(data);
+    } catch (err) {
+      this.handleError(err, 'doanh thu theo danh mục');
+    } finally {
+      this.isLoadingCategorySales = false;
+    }
+  }
+
+  async loadRecentOrders(count: number): Promise<void> {
+    this.isLoadingRecentOrders = true;
+    try {
+      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
+      const data = await this.dashboardService.getRecentOrders({ count });
+      // SỬA LỖI 21: Gán 'data' (là RecentOrder[]) cho 'this.recentOrders'
+      this.recentOrders = data;
+    } catch (err) {
+      this.handleError(err, 'đơn hàng gần đây');
+    } finally {
+      this.isLoadingRecentOrders = false;
+    }
+  }
+  private updateBarChart(data: SalesOverTimeResponse[]): void {
+    this.barChartData = {
+      labels: data.map(d => d.date),
+      datasets: [
+        { data: data.map(d => d.revenue), label: 'Doanh thu', backgroundColor: '#3b82f6' },
+        { data: data.map(d => d.orderCount), label: 'Đơn hàng', backgroundColor: '#a855f7' },
+      ],
+    };
+  }
+
+  private updatePieChart(data: CategorySalesResponse[]): void {
+    this.pieChartData = {
+      labels: data.map(d => d.categoryName),
+      datasets: [
+        {
+          data: data.map(d => d.totalRevenue),
+          backgroundColor: this.pieChartData.datasets[0].backgroundColor,
+          hoverBackgroundColor: this.pieChartData.datasets[0].hoverBackgroundColor,
+        },
+      ],
+    };
+  }
+
+  private handleError(error: any, context: string): void {
+    console.error(`Error loading ${context}:`, error);
+    this.errorMessage = error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định';
   }
 }

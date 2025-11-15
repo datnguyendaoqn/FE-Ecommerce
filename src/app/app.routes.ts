@@ -12,7 +12,7 @@ import { ProductDetailComponent } from '@features/product/product-detail/product
 // =================== IMPORT HOÀN CHỈNH ===================
 import { sellerGuard } from '@core/guards/seller.guard';
 import { SellerLayoutComponent } from '@features/seller/seller';
-import { SellerDashboardComponent } from '@features/seller/dashboard/dashboard';
+import { DashboardComponent } from '@features/seller/dashboard/dashboard';
 import { SellerProductListComponent } from '@features/seller/product-list/product-list';
 import { SellerRegistrationComponent } from '@features/seller/register/registration';
 // ========== THÊM IMPORT MỚI ==========
@@ -45,7 +45,7 @@ export const routes: Routes = [
     canActivate: [sellerGuard],
     children: [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
-      { path: 'dashboard', component: SellerDashboardComponent },
+      { path: 'dashboard', component: DashboardComponent },
       { path: 'products', component: SellerProductListComponent },
       { path: 'product/new', component: SellerProductFormComponent },
       { path: 'product/:id', component: SellerProductFormComponent },
