@@ -1,6 +1,7 @@
 import { Injectable } from "@angular/core";
 import { NGXLogger } from "ngx-logger";
 import { isAxiosError } from "axios";
+import { UserDto } from "@dtos/user/user.dto"
 import { enviroment } from "src/enviroments/enviroment";
 
 @Injectable({
@@ -53,4 +54,37 @@ export class HelperService {
             error instanceof Error ? error.message : "Lỗi không xác định"
         );
     }
+
+    getInforUser(): UserDto | undefined {
+        try {
+            const dataRaw = localStorage.getItem("user");
+
+            if (!dataRaw) {
+                console.error("No user found");
+                return undefined
+            }
+
+            const dataConvert: UserDto = JSON.parse(dataRaw);
+            return dataConvert;
+        } catch (error) {
+            console.error(error);
+            return undefined
+        }
+    }
+
+    buildQueryParams(baseParams: any, filter?: any) {
+        const finalParams: any = { ...baseParams };
+
+        if (filter && typeof filter === 'object') {
+            Object.keys(filter).forEach(key => {
+                if (filter[key] !== null && filter[key] !== undefined) {
+                    finalParams[`filter[${key}]`] = filter[key];
+                }
+            });
+        }
+
+        return finalParams;
+    }
+
+
 }

@@ -31,7 +31,6 @@ Chart.register(...registerables);
 // Temporarily leave routes empty if there is no router
 bootstrapApplication(AppComponent, {
   providers: [provideRouter(routes),
-  provideHttpClient(),
     DatePipe,
   importProvidersFrom(
     LoggerModule.forRoot({

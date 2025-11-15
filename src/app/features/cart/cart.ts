@@ -3,12 +3,10 @@ import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatDialogModule, MatDialog } from '@angular/material/dialog';
 import { Router, RouterModule } from '@angular/router';
 import { CartProductVariantDto } from '@dtos/product-variant/product-variant';
 import { CartResponseDto } from '@dtos/cart/cart.response.dto';
 import { CartService } from 'src/services/cart/cart.service';
-import { MOCK_CART_RESPONSE } from 'src/data/cart.data';
 import { ToastrService } from 'ngx-toastr';
 import { NGXLogger } from 'ngx-logger';
 import { CartShopDto } from '@dtos/cart/cart.dto';
@@ -17,6 +15,8 @@ import { Store } from '@ngrx/store';
 import { addCart, previousCart, resetCart } from '@features/auth/store/cart.actions';
 import { AddressSelectDialogComponent } from '@shared/component/ui/address-books/dialog';
 import { OrderService } from 'src/services/order/order.service';
+import { MatDialog } from '@angular/material/dialog';
+import { HelperService } from 'src/helpers/hepler.service';
 
 // Extend để thêm trạng thái selected
 interface CartShopWithSelection extends CartShopDto {
@@ -27,11 +27,10 @@ interface CartShopWithSelection extends CartShopDto {
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIcon, MatCheckboxModule, CurrencyPipe],
+  imports: [CommonModule, RouterModule, MatIcon, MatCheckboxModule, MatRadioModule, CurrencyPipe],
   templateUrl: './cart.html',
 })
 export class CartComponent implements OnInit {
-
   constructor(
     private readonly cartService: CartService,
     private readonly toast: ToastrService,
@@ -40,8 +39,9 @@ export class CartComponent implements OnInit {
     private readonly router: Router,
     private readonly dialog: MatDialog,
     private readonly store: Store,
-    private readonly orderService: OrderService
-  ) { }
+    private readonly orderService: OrderService,
+    private readonly helperService: HelperService
+  ) {}
 
   // Dữ liệu cart với trạng thái selection
   shops = signal<CartShopWithSelection[]>([]);
@@ -54,13 +54,23 @@ export class CartComponent implements OnInit {
   defaultAddress = signal<any>(null);
   isLoadingAddress = signal(false);
 
+  // Phương thức thanh toán
+  selectedPaymentMethod = signal<'COD' | 'PAYMENT'>('COD');
+
+  // Trạng thái đăng nhập
+  isLoggedIn = signal(false);
+  isCheckingAuth = signal(true);
+
   // Computed: Tổng giá của các items được chọn
   selectedTotalPrice = computed(() => {
     return this.shops().reduce((total, shop) => {
       if (shop.selected) {
-        return total + shop.items
-          .filter(item => item.selected)
-          .reduce((sum, item) => sum + (item.priceAtTimeOfAdd * item.quantity), 0);
+        return (
+          total +
+          shop.items
+            .filter((item) => item.selected)
+            .reduce((sum, item) => sum + item.priceAtTimeOfAdd * item.quantity, 0)
+        );
       }
       return total;
     }, 0);
@@ -69,13 +79,13 @@ export class CartComponent implements OnInit {
   // Computed: Số lượng items được chọn
   selectedItemsCount = computed(() => {
     return this.shops().reduce((count, shop) => {
-      return count + shop.items.filter(item => item.selected).length;
+      return count + shop.items.filter((item) => item.selected).length;
     }, 0);
   });
 
   // Computed: Số shop được chọn
   selectedShopsCount = computed(() => {
-    return this.shops().filter(shop => shop.selected && shop.items.some(item => item.selected)).length;
+    return this.shops().filter((shop) => shop.selected && shop.items.some((item) => item.selected)).length;
   });
 
   // Computed: Có item nào được chọn không
@@ -84,8 +94,31 @@ export class CartComponent implements OnInit {
   });
 
   async ngOnInit() {
-    await this.fetchDataCart();
-    await this.fetchDefaultAddress();
+    // Kiểm tra đăng nhập trước
+    this.checkAuthentication();
+    if (this.isLoggedIn()) {
+      await this.fetchDataCart();
+      await this.fetchDefaultAddress();
+    }
+    this.isCheckingAuth.set(false);
+  }
+
+  // Kiểm tra trạng thái đăng nhập
+  checkAuthentication() {
+    const user = this.helperService.getInforUser();
+    if (!user) {
+      this.isLoggedIn.set(false);
+      this.toast.warning('Vui lòng đăng nhập để sử dụng tính năng giỏ hàng!', 'Yêu cầu đăng nhập');
+      this.logger.info('User not logged in, redirecting...');
+    } else {
+      this.isLoggedIn.set(true);
+      this.logger.info('User logged in:', user);
+    }
+  }
+
+  // Điều hướng đến trang đăng nhập
+  navigateToLogin() {
+    this.router.navigate(['/login'], { queryParams: { returnUrl: '/cart' } });
   }
 
   async fetchDataCart() {
@@ -94,11 +127,18 @@ export class CartComponent implements OnInit {
       if (dataCart.data.shops && dataCart.data.shops.length > 0) {
         this.loadCart(dataCart);
       } else {
-        this.loadCart(MOCK_CART_RESPONSE);
+        // Giỏ hàng trống - không load mock data
+        this.shops.set([]);
+        this.totalItemsCount.set(0);
+        this.grandTotalPrice.set(0);
       }
     } catch (error) {
       this.logger.error('Error fetching cart:', error);
-      this.loadCart(MOCK_CART_RESPONSE);
+      // Lỗi khi fetch - vẫn hiển thị giỏ hàng trống
+      this.shops.set([]);
+      this.totalItemsCount.set(0);
+      this.grandTotalPrice.set(0);
+      this.toast.error('Không thể tải giỏ hàng. Vui lòng thử lại!', 'Lỗi');
     }
   }
 
@@ -106,11 +146,9 @@ export class CartComponent implements OnInit {
     try {
       this.isLoadingAddress.set(true);
       const response = await this.addressBookService.getAll();
-
       // Tìm địa chỉ mặc định từ danh sách
       const defaultAddress = response.find((addr: any) => addr.isDefault);
       this.defaultAddress.set(defaultAddress || null);
-
       this.logger.info('Default address:', defaultAddress);
     } catch (error) {
       this.logger.error('Error fetching default address:', error);
@@ -122,13 +160,13 @@ export class CartComponent implements OnInit {
 
   loadCart(response: CartResponseDto) {
     // Thêm trạng thái selected cho shops và items
-    const shopsWithSelection: CartShopWithSelection[] = response.data.shops.map(shop => ({
+    const shopsWithSelection: CartShopWithSelection[] = response.data.shops.map((shop) => ({
       ...shop,
       selected: true, // Mặc định chọn tất cả
-      items: shop.items.map(item => ({
+      items: shop.items.map((item) => ({
         ...item,
-        selected: true // Mặc định chọn tất cả
-      }))
+        selected: true, // Mặc định chọn tất cả
+      })),
     }));
 
     this.shops.set(shopsWithSelection);
@@ -138,14 +176,17 @@ export class CartComponent implements OnInit {
 
   // Toggle chọn toàn bộ shop
   toggleShop(shopId: number) {
-    this.shops.update(shops =>
-      shops.map(shop => {
+    this.shops.update((shops) =>
+      shops.map((shop) => {
         if (shop.shopId === shopId) {
           const newSelected = !shop.selected;
           return {
             ...shop,
             selected: newSelected,
-            items: shop.items.map(item => ({ ...item, selected: newSelected }))
+            items: shop.items.map((item) => ({
+              ...item,
+              selected: newSelected,
+            })),
           };
         }
         return shop;
@@ -155,23 +196,21 @@ export class CartComponent implements OnInit {
 
   // Toggle chọn từng item
   toggleItem(shopId: number, productVariantId: number) {
-    this.shops.update(shops =>
-      shops.map(shop => {
+    this.shops.update((shops) =>
+      shops.map((shop) => {
         if (shop.shopId === shopId) {
-          const updatedItems = shop.items.map(item =>
-            item.productVariantId === productVariantId
-              ? { ...item, selected: !item.selected }
-              : item
+          const updatedItems = shop.items.map((item) =>
+            item.productVariantId === productVariantId ? { ...item, selected: !item.selected } : item
           );
 
           // Tự động update trạng thái shop dựa vào items
-          const allSelected = updatedItems.every(item => item.selected);
-          const someSelected = updatedItems.some(item => item.selected);
+          const allSelected = updatedItems.every((item) => item.selected);
+          const someSelected = updatedItems.some((item) => item.selected);
 
           return {
             ...shop,
             items: updatedItems,
-            selected: allSelected || someSelected
+            selected: allSelected || someSelected,
           };
         }
         return shop;
@@ -181,22 +220,20 @@ export class CartComponent implements OnInit {
 
   // Kiểm tra shop có được chọn một phần không (indeterminate)
   isShopIndeterminate(shop: CartShopWithSelection): boolean {
-    const selectedCount = shop.items.filter(item => item.selected).length;
+    const selectedCount = shop.items.filter((item) => item.selected).length;
     return selectedCount > 0 && selectedCount < shop.items.length;
   }
 
   async updateQuantity(item: CartProductVariantDto, change: number) {
     const newQuantity = item.quantity + change;
     this.logger.info(`New quantity: ${newQuantity}`);
-
     if (newQuantity <= 0) return;
 
     try {
       await this.cartService.updateQuantityCartItem({
         productVariantId: item.productVariantId,
-        NewQuantity: newQuantity
+        NewQuantity: newQuantity,
       });
-
       await this.fetchDataCart();
       this.toast.success('Cập nhật số lượng thành công!', 'Thành công');
       this.store.dispatch(addCart());
@@ -233,9 +270,9 @@ export class CartComponent implements OnInit {
   // Lấy danh sách productVariantIds đã chọn
   getSelectedVariantIds(): number[] {
     const variantIds: number[] = [];
-    this.shops().forEach(shop => {
+    this.shops().forEach((shop) => {
       if (shop.selected) {
-        shop.items.forEach(item => {
+        shop.items.forEach((item) => {
           if (item.selected) {
             variantIds.push(item.productVariantId);
           }
@@ -248,11 +285,21 @@ export class CartComponent implements OnInit {
   // Tạo shopNotes từ các shop đã chọn
   getShopNotes() {
     return this.shops()
-      .filter(shop => shop.selected && shop.items.some(item => item.selected))
-      .map(shop => ({
+      .filter((shop) => shop.selected && shop.items.some((item) => item.selected))
+      .map((shop) => ({
         shopId: shop.shopId,
-        note: '' // Có thể thêm UI để user nhập note sau
+        note: '', // Có thể thêm UI để user nhập note sau
       }));
+  }
+
+  // Chọn phương thức thanh toán
+  selectPaymentMethod(method: 'COD' | 'PAYMENT') {
+    if (method === 'PAYMENT') {
+      // Không cho phép chọn PAYMENT vì chưa sẵn sàng
+      this.toast.info('Tính năng thanh toán online sẽ sớm được ra mắt!', 'Thông báo');
+      return;
+    }
+    this.selectedPaymentMethod.set(method);
   }
 
   // Proceed to checkout
@@ -264,7 +311,7 @@ export class CartComponent implements OnInit {
 
     // Kiểm tra địa chỉ mặc định
     if (!this.defaultAddress()) {
-      // Mở dialog chọn địa chỉ
+      this.toast.warning('Vui lòng chọn địa chỉ giao hàng!', 'Thông báo');
       this.openAddressSelectDialog();
       return;
     }
@@ -272,21 +319,18 @@ export class CartComponent implements OnInit {
     // Tạo payload theo đúng format API
     const orderPayload = {
       addressBookId: this.defaultAddress().id,
-      paymentMethod: 'COD', // Có thể thêm UI để chọn phương thức thanh toán
+      paymentMethod: this.selectedPaymentMethod(),
       shopNotes: this.getShopNotes(),
-      tickedVariantIds: this.getSelectedVariantIds()
+      tickedVariantIds: this.getSelectedVariantIds(),
     };
 
     try {
       this.logger.info('Creating order with payload:', orderPayload);
       const res = await this.orderService.create(orderPayload);
-      
       this.toast.success('Đặt hàng thành công!', 'Thành công');
       this.store.dispatch(resetCart());
-      
       // Navigate to order success page hoặc order detail
       // this.router.navigate(['/orders', res.orderId]);
-      
     } catch (error) {
       this.logger.error('Error creating order:', error);
       this.toast.error('Không thể tạo đơn hàng. Vui lòng thử lại!', 'Lỗi');
@@ -299,16 +343,13 @@ export class CartComponent implements OnInit {
       width: '600px',
       maxWidth: '90vw',
       id: 'address-select',
-      disableClose: false
+      disableClose: false,
     });
 
-    dialogRef.afterClosed().subscribe(selectedAddress => {
+    dialogRef.afterClosed().subscribe((selectedAddress) => {
       if (selectedAddress) {
         this.defaultAddress.set(selectedAddress);
         this.toast.success('Đã chọn địa chỉ giao hàng!', 'Thành công');
-
-        // Tiếp tục checkout
-        this.proceedToCheckout();
       }
     });
   }

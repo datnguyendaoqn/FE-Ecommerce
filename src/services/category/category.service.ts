@@ -4,11 +4,12 @@ import { HelperService } from "src/helpers/hepler.service";
 import { BaseApiService } from "../api.service";
 import { axiosInstance } from "src/configs/axiosInstance";
 import { CategoryApiResponseDto, RecursiveCategoryDto } from "@dtos/category/category.dto";
+import { CategoryDto } from "@dtos/category/category";
 
 @Injectable({
     providedIn: "root",
 })
-export class CategoryService extends BaseApiService<any, any> {
+export class CategoryService extends BaseApiService<CategoryDto, CategoryApiResponseDto> {
 
     constructor(
         protected override readonly helper: HelperService,

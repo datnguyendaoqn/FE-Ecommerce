@@ -14,34 +14,40 @@
 </div>
 
 <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+  <!-- Featured Products Section -->
   <section class="max-w-7xl mx-auto px-4 mb-16">
     <div class="relative mb-10">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
           <div class="relative flex items-center justify-center">
-            <div class="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 blur-lg opacity-50 rounded-full"></div>
-            <div class="relative bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-2xl shadow-lg flex items-center justify-center">
-              <mat-icon class="!text-white !text-3xl flex items-center justify-center">local_fire_department</mat-icon>
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-red-500 to-orange-500 blur-lg opacity-50 rounded-full"
+            ></div>
+            <div
+              class="relative bg-gradient-to-r from-red-500 to-orange-500 p-3 rounded-2xl shadow-lg flex items-center justify-center"
+            >
+              <mat-icon class="!text-white !text-3xl flex items-center justify-center"
+                >local_fire_department</mat-icon
+              >
             </div>
           </div>
           <div>
-            <h2 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent">
+            <h2
+              class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-red-600 to-orange-600 bg-clip-text text-transparent"
+            >
               Sản phẩm nổi bật
             </h2>
             <p class="text-gray-600 text-sm mt-1">Top 5 được yêu thích nhất</p>
           </div>
         </div>
-        <a href="/hot-deals" class="hidden sm:flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold group transition-colors">
-          <span>Xem tất cả</span>
-          <mat-icon class="text-lg group-hover:translate-x-1 transition-transform flex items-center justify-center">arrow_forward</mat-icon>
-        </a>
+       
       </div>
       <div class="mt-4 h-1 w-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
     </div>
 
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
       <app-product-card
-        *ngFor="let p of products.slice(0, 5); let i = index"
+        *ngFor="let p of top5Products; let i = index"
         [product]="p"
         [attr.data-aos]="'fade-up'"
         [attr.data-aos-delay]="i * 100"
@@ -51,38 +57,67 @@
     </div>
 
     <div class="mt-8 flex justify-center">
-      <div class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-full border border-red-200">
+      <div
+        class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-full border border-red-200"
+      >
         <mat-icon class="!text-red-500 !text-lg flex items-center justify-center">stars</mat-icon>
-        <span class="text-sm font-medium text-gray-700">Được bình chọn bởi <span class="font-bold text-red-600">10,000+</span> khách hàng</span>
+        <span class="text-sm font-medium text-gray-700"
+          >Được bình chọn bởi <span class="font-bold text-red-600">10,000+</span> khách hàng</span
+        >
       </div>
     </div>
   </section>
 
+  <!-- Category Quick Links Section -->
   <section class="max-w-7xl mx-auto px-4 mb-16">
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <a href="/category/new" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start">
-        <mat-icon class="!text-xl mb-3 flex items-center justify-center group-hover:scale-110 transition-transform">new_releases</mat-icon>
+      <a
+        href="/category/new"
+        class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start"
+      >
+        <mat-icon
+          class="!text-xl mb-3 flex items-center justify-center group-hover:scale-110 transition-transform"
+          >new_releases</mat-icon
+        >
         <h3 class="font-bold text-lg">Hàng Mới</h3>
         <p class="text-sm opacity-90">Sản phẩm mới nhất</p>
         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
       </a>
 
-      <a href="/category/sale" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start">
-        <mat-icon class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">sell</mat-icon>
+      <a
+        href="/category/sale"
+        class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-red-500 to-pink-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start"
+      >
+        <mat-icon
+          class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform"
+          >sell</mat-icon
+        >
         <h3 class="font-bold text-lg">Khuyến Mãi</h3>
         <p class="text-sm opacity-90">Giảm đến 50%</p>
         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
       </a>
 
-      <a href="/category/trending" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start">
-        <mat-icon class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">trending_up</mat-icon>
+      <a
+        href="/category/trending"
+        class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start"
+      >
+        <mat-icon
+          class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform"
+          >trending_up</mat-icon
+        >
         <h3 class="font-bold text-lg">Xu Hướng</h3>
         <p class="text-sm opacity-90">Thịnh hành nhất</p>
         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
       </a>
 
-      <a href="/category/bestseller" class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start">
-        <mat-icon class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform">emoji_events</mat-icon>
+      <a
+        href="/category/bestseller"
+        class="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500 to-green-600 p-6 text-white hover:shadow-2xl transition-all duration-300 transform hover:scale-105 flex flex-col items-start"
+      >
+        <mat-icon
+          class="!text-xl mb-2 flex items-center justify-center group-hover:scale-110 transition-transform"
+          >emoji_events</mat-icon
+        >
         <h3 class="font-bold text-lg">Bán Chạy</h3>
         <p class="text-sm opacity-90">Top bán chạy</p>
         <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-white/10 rounded-full"></div>
@@ -90,38 +125,171 @@
     </div>
   </section>
 
+  <!-- All Products Section -->
   <section class="max-w-7xl mx-auto px-4 mb-20">
     <div class="relative mb-10">
       <div class="flex items-center justify-between flex-wrap gap-4">
         <div class="flex items-center gap-4">
           <div class="relative flex items-center justify-center">
-            <div class="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 blur-lg opacity-50 rounded-full"></div>
-            <div class="relative bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-2xl shadow-lg flex items-center justify-center">
-              <mat-icon class="!text-white !text-3xl flex items-center justify-center">dashboard</mat-icon>
+            <div
+              class="absolute inset-0 bg-gradient-to-r from-blue-500 to-cyan-500 blur-lg opacity-50 rounded-full"
+            ></div>
+            <div
+              class="relative bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-2xl shadow-lg flex items-center justify-center"
+            >
+              <mat-icon class="!text-white !text-3xl flex items-center justify-center"
+                >dashboard</mat-icon
+              >
             </div>
           </div>
           <div>
-            <h2 class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">
+            <h2
+              class="text-3xl lg:text-4xl font-bold bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent"
+            >
               Tất cả sản phẩm
             </h2>
-            <p class="text-gray-600 text-sm mt-1">{{ products.length }} sản phẩm có sẵn</p>
+            <p class="text-gray-600 text-sm mt-1">{{ totalProducts }} sản phẩm có sẵn</p>
           </div>
         </div>
 
         <div class="flex items-center gap-3">
-          <button class="px-4 py-2 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center gap-2 text-sm font-medium">
+          <button
+            (click)="toggleFilterPanel()"
+            class="px-4 py-2 rounded-xl border transition-all flex items-center gap-2 text-sm font-medium"
+            [ngClass]="
+              showFilterPanel
+                ? 'border-primary-500 bg-primary-50 text-primary-700'
+                : 'border-gray-200 hover:border-primary-500 hover:bg-primary-50'
+            "
+          >
             <mat-icon class="text-lg flex items-center justify-center">filter_list</mat-icon>
             <span class="hidden sm:inline">Bộ lọc</span>
-          </button>
-          <button class="px-4 py-2 rounded-xl border border-gray-200 hover:border-primary-500 hover:bg-primary-50 transition-all flex items-center gap-2 text-sm font-medium">
-            <mat-icon class="text-lg flex items-center justify-center">sort</mat-icon>
-            <span class="hidden sm:inline">Sắp xếp</span>
           </button>
         </div>
       </div>
       <div class="mt-4 h-1 w-24 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-full"></div>
     </div>
 
+    <!-- Filter Panel -->
+    <div
+      *ngIf="showFilterPanel"
+      class="bg-white rounded-2xl shadow-lg border border-gray-200 p-6 mb-6"
+    >
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-lg font-bold text-gray-900 flex items-center gap-2">
+          <mat-icon class="text-primary-600">tune</mat-icon>
+          Bộ lọc sản phẩm
+        </h3>
+        <button
+          (click)="resetFilters()"
+          class="text-sm text-red-600 hover:text-red-700 font-medium flex items-center gap-1"
+        >
+          <mat-icon class="text-base">restart_alt</mat-icon>
+          Xóa bộ lọc
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Category Filter - MULTI-LEVEL -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <mat-icon class="text-base text-gray-500">category</mat-icon>
+            Danh mục
+          </label>
+          <select
+            [(ngModel)]="filters.categoryId"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-gray-900"
+          >
+            <option [ngValue]="null">Tất cả danh mục</option>
+            <ng-container *ngFor="let cat of categories">
+              <option [ngValue]="cat.id" [attr.data-level]="cat.level">
+                {{ getCategoryPrefix(cat.level) }}{{ cat.name }}
+              </option>
+            </ng-container>
+          </select>
+        </div>
+
+        <!-- Price Range Filter -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <mat-icon class="text-base text-gray-500">payments</mat-icon>
+            Khoảng giá
+          </label>
+          <div class="flex items-center gap-2">
+            <input
+              type="text"
+              currencyMask
+              [options]="configCurrency"
+              [(ngModel)]="filters.minPrice"
+              placeholder="Từ"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            />
+
+            <span class="text-gray-400">-</span>
+            <input
+              type="text"
+              currencyMask
+              [options]="configCurrency"
+              [(ngModel)]="filters.maxPrice"
+              placeholder="Đến"
+              class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+            />
+          </div>
+        </div>
+
+        <!-- Rating Filter -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <mat-icon class="text-base text-gray-500">star</mat-icon>
+            Đánh giá tối thiểu
+          </label>
+          <select
+            [(ngModel)]="filters.minRating"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-gray-900"
+          >
+            <option [ngValue]="null">Tất cả</option>
+            <option [ngValue]="4">4 sao trở lên ⭐⭐⭐⭐</option>
+            <option [ngValue]="3">3 sao trở lên ⭐⭐⭐</option>
+            <option [ngValue]="2">2 sao trở lên ⭐⭐</option>
+            <option [ngValue]="1">1 sao trở lên ⭐</option>
+          </select>
+        </div>
+
+        <!-- Sort By Filter -->
+        <div>
+          <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
+            <mat-icon class="text-base text-gray-500">sort</mat-icon>
+            Sắp xếp theo
+          </label>
+          <select
+            [(ngModel)]="filters.sortBy"
+            class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white text-gray-900"
+          >
+            <option value="">Mặc định</option>
+            <option *ngFor="let opt of sortOptions" [value]="opt.value">{{ opt.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Filter Action Buttons -->
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          (click)="showFilterPanel = false"
+          class="px-6 py-2.5 border border-gray-300 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Hủy
+        </button>
+        <button
+          (click)="applyFilters()"
+          class="px-6 py-2.5 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-xl font-medium hover:shadow-lg transition-all flex items-center gap-2"
+        >
+          <mat-icon class="text-base">check</mat-icon>
+          Áp dụng
+        </button>
+      </div>
+    </div>
+
+    <!-- Products Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
       <app-product-card
         *ngFor="let p of paginatedProducts; let i = index"
@@ -134,14 +302,18 @@
       ></app-product-card>
     </div>
 
+    <!-- Pagination Section -->
     <div class="mt-12 flex flex-col items-center gap-4">
       <div class="text-sm text-gray-600">
-        Hiển thị <span class="font-semibold text-gray-900">{{ (page - 1) * pageSize + 1 }}</span> - 
-        <span class="font-semibold text-gray-900">{{ Math.min(page * pageSize, products.length) }}</span> 
-        trong số <span class="font-semibold text-gray-900">{{ products.length }}</span> sản phẩm
+        Hiển thị <span class="font-semibold text-gray-900">{{ (page - 1) * pageSize + 1 }}</span> -
+        <span class="font-semibold text-gray-900">{{
+          Math.min(page * pageSize, totalProducts)
+        }}</span>
+        trong số <span class="font-semibold text-gray-900">{{ totalProducts }}</span> sản phẩm
       </div>
 
       <div class="flex items-center gap-2 flex-wrap justify-center">
+        <!-- Previous Button -->
         <button
           (click)="changePage(page - 1)"
           [disabled]="page === 1"
@@ -156,7 +328,8 @@
           <span class="hidden sm:inline">Trước</span>
         </button>
 
-        <ng-container *ngFor="let p of [].constructor(Math.ceil(products.length / pageSize)); let i = index">
+        <!-- Page Numbers -->
+        <ng-container *ngFor="let p of [].constructor(totalPages); let i = index">
           <button
             *ngIf="shouldShowPage(i + 1)"
             (click)="changePage(i + 1)"
@@ -172,12 +345,13 @@
           <span *ngIf="shouldShowEllipsis(i + 1)" class="text-gray-400 px-2">...</span>
         </ng-container>
 
+        <!-- Next Button -->
         <button
           (click)="changePage(page + 1)"
-          [disabled]="page === Math.ceil(products.length / pageSize)"
+          [disabled]="page === totalPages"
           class="px-4 py-2 rounded-xl border text-sm font-medium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           [ngClass]="
-            page === Math.ceil(products.length / pageSize)
+            page === totalPages
               ? 'bg-gray-100 text-gray-400 border-gray-200'
               : 'bg-white text-gray-700 border-gray-200 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-300 hover:shadow-md'
           "

@@ -10,3 +10,4 @@ export interface RecursiveCategoryDto {
 export interface CategoryApiResponseDto extends ApiResponseDto {
   data: RecursiveCategoryDto[];
 }
+
