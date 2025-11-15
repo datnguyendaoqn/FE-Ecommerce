@@ -54,11 +54,17 @@ export class SellerOrderListComponent implements OnInit {
     let message = '';
     let confirmText = '';
 
-    if (newStatus === 'Shipping') {
+    if (newStatus === 'processing') {
+      title = 'Xác nhận Chuẩn bị hàng';
+      message = `Bạn có chắc muốn bắt đầu chuẩn bị đơn hàng <b>#${orderId}</b>?`;
+      confirmText = 'Xác nhận';
+    } 
+    else if (newStatus === 'shipping') {
       title = 'Xác nhận Giao hàng';
-      message = `Bạn có chắc muốn xác nhận và bắt đầu giao đơn hàng <b>#${orderId}</b>?`;
+      message = `Bạn có chắc đã bàn giao đơn hàng <b>#${orderId}</b> cho đơn vị vận chuyển?`;
       confirmText = 'Xác nhận Giao';
-    } else if (newStatus === 'Completed') {
+    } 
+    else if (newStatus === 'Completed') {
       title = 'Xác nhận Hoàn thành';
       message = `Bạn có chắc đơn hàng <b>#${orderId}</b> đã giao thành công?`;
       confirmText = 'Đã hoàn thành';

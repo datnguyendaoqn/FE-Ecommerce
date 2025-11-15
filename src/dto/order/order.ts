@@ -1,6 +1,6 @@
 import { ApiPaginationResponseDto } from "@dtos/api/api.response.dto";
 
-export type OrderStatus = 'Pending' | 'Shipping' | 'Completed' | 'Cancelled';
+export type OrderStatus = 'Pending' | 'processing' | 'shipping' | 'Completed' | 'Cancelled'| 'shipped';
 
 export interface SellerOrderItemDto {
   productName: string;

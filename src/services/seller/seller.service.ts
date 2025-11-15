@@ -11,13 +11,13 @@ import {
   SellerOrderDto,
   BackendOrderDto,
   SellerOrderApiResponse
-} from "@dtos/order/order";
+} from "@dtos/order/order"; 
 
 @Injectable({
   providedIn: "root",
 })
 export class SellerService {
-  endPoint: string = "http://localhost:8080/api/sellers";
+  endPoint: string = "http://localhost:8080/api/seller";
 
   constructor(
     private readonly helper: HelperService,
@@ -50,7 +50,6 @@ export class SellerService {
       );
 
       const backendResponse = res.data; 
-
       const backendPagedData = backendResponse.data; 
 
       if (!backendPagedData || !backendPagedData.items) {
@@ -73,11 +72,9 @@ export class SellerService {
         isSuccess: backendResponse.isSuccess,
         code: backendResponse.code,
         message: backendResponse.message,
-
         data: { 
           items: mappedItems 
         },
-
         pageNumber: backendResponse.pageNumber,
         pageSize: backendResponse.pageSize,
         totalCount: backendResponse.totalCount,
@@ -110,9 +107,24 @@ export class SellerService {
     };
   }
 
-  async updateOrderStatus(orderId: number, newStatus: OrderStatus): Promise<any> {
-    this.logger.warn(`(CHỨC NĂNG CHƯA HOÀN THIỆN) Yêu cầu cập nhật đơn hàng #${orderId} sang ${newStatus}. API backend chưa tồn tại.`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return true;
+  async updateOrderStatus(orderId: number, newStatus: OrderStatus): Promise<boolean> {
+    this.logger.debug(`Yêu cầu cập nhật đơn hàng #${orderId} sang ${newStatus}.`);
+    
+    const requestBody = {
+      NewStatus: newStatus
+    };
+    try {
+      const res = await axiosInstance.patch<ApiPaginationResponseDto<any>>(
+        `${this.endPoint}/orders/${orderId}/status`,
+        requestBody
+      );
+      if (res.data.isSuccess) {
+          return true;
+      }
+      throw new Error(res.data.message || "Cập nhật thất bại");
+    } catch (error) {
+      this.logger.error(`Lỗi khi cập nhật trạng thái đơn hàng #${orderId}.`, error);
+      throw this.helper.ThrowError(error);
+    }
   }
 }

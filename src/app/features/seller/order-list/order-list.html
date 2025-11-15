@@ -12,8 +12,14 @@
       Chưa xử lý
     </button>
     <button 
-      (click)="loadOrders('Shipping')"
-      [ngClass]="activeTab() === 'Shipping' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      (click)="loadOrders('processing')"
+      [ngClass]="activeTab() === 'processing' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      class="py-4 px-6 font-semibold border-b-2 transition-colors">
+      Đang chuẩn bị
+    </button>
+    <button 
+      (click)="loadOrders('shipping')"
+      [ngClass]="activeTab() === 'shipping' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
       class="py-4 px-6 font-semibold border-b-2 transition-colors">
       Đang giao
     </button>
@@ -58,11 +64,12 @@
               <span class="text-sm font-semibold"
                 [ngClass]="{
                   'text-orange-600': order.status === 'Pending',
-                  'text-blue-600': order.status === 'Shipping',
+                  'text-purple-600': order.status === 'processing',
+                  'text-blue-600': order.status === 'shipping',
                   'text-green-600': order.status === 'Completed',
                   'text-gray-500': order.status === 'Cancelled'
                 }">
-                {{ order.status === 'Pending' ? 'Chờ xác nhận' : (order.status === 'Shipping' ? 'Đang giao' : (order.status === 'Completed' ? 'Hoàn thành' : 'Đã hủy')) }}
+                {{ order.status === 'Pending' ? 'Chờ xác nhận' : (order.status === 'processing' ? 'Đang chuẩn bị' : (order.status === 'shipping' ? 'Đang giao' : (order.status === 'Completed' ? 'Hoàn thành' : 'Đã hủy'))) }}
               </span>
             </div>
 
@@ -91,25 +98,31 @@
               <div>
                 @if (order.status === 'Pending') {
                   <button 
-                    (click)="handleUpdateStatus(order.orderId, 'Shipping')"
+                    (click)="handleUpdateStatus(order.orderId, 'processing')"
                     class="bg-primary-600 text-white font-semibold py-2 px-4 rounded-lg
                            hover:bg-primary-700 transition-colors">
-                    Chuẩn bị hàng
+                    Xác nhận chuẩn bị
                   </button>
                 }
-                @if (order.status === 'Shipping') {
+                
+                @if (order.status === 'processing') {
                   <button 
-                    (click)="handleUpdateStatus(order.orderId, 'Completed')"
+                    (click)="handleUpdateStatus(order.orderId, 'shipped')"
                     class="bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg
                            hover:bg-blue-700 transition-colors">
-                    Xác nhận Đã giao
+                    Bàn giao vận chuyển
                   </button>
                 }
+
+                @if (order.status === 'shipping') {
+                  <span class="text-sm text-blue-700 font-medium">(Đang giao hàng)</span>
+                }
+                
                 @if (order.status === 'Completed') {
                   <span class="text-sm text-green-700 font-medium">Đã hoàn thành</span>
                 }
               </div>
-            </div>
+              </div>
           </div>
         }
       }
