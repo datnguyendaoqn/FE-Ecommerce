@@ -13,6 +13,7 @@ import { SellerProductDetailDto, SellerProductVariantDetailDto, ProductMediaDto 
 import { CategoryService } from 'src/services/category/category.service';
 import { RecursiveCategoryDto } from '@dtos/category/category.dto';
 import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dto';
+import { NgxCurrencyDirective, NgxCurrencyInputMode } from "ngx-currency";
 
 
 // Định nghĩa DTOs cục bộ (Không tạo file mới)
@@ -33,21 +34,21 @@ interface UpdateProductVariantRequestDto {
     CommonModule,
     RouterModule,
     MatIcon,
-    CurrencyPipe,
     ReactiveFormsModule,
-    MatDialogModule // Cần cho Dialog
+    MatDialogModule, // Cần cho Dialog
+    NgxCurrencyDirective,
   ],
   templateUrl: './product-form.html',
 })
 export class SellerProductFormComponent implements OnInit {
-  
+
   productForm: FormGroup;
   isEditMode = signal(false);
-  isLoading = signal(false); 
+  isLoading = signal(false);
   productId = signal<number | null>(null);
 
-  productGallery = signal<ProductMediaDto[]>([]); 
-  categories = signal<RecursiveCategoryDto[]>([]); 
+  productGallery = signal<ProductMediaDto[]>([]);
+  categories = signal<RecursiveCategoryDto[]>([]);
 
   sizeOptions = [
     "XS", "S", "M", "L", "XL", "XXL", "XXXL",
@@ -73,9 +74,23 @@ export class SellerProductFormComponent implements OnInit {
     private route: ActivatedRoute, 
     private router: Router,
     private categoryService: CategoryService,
-    private dialog: MatDialog 
+    private dialog: MatDialog
   ) {
     this.productForm = this.initForm(); 
+  }
+
+  configCurrency = {
+    align: "left",
+    allowNegative: false,
+    allowZero: true,
+    precision: 0,
+    prefix: "",
+    suffix: " VNĐ",
+    thousands: ".",
+    nullable: true,
+    min: 0,
+    max: 10000000,
+    inputMode: NgxCurrencyInputMode.Financial
   }
 
   ngOnInit() {
@@ -120,7 +135,6 @@ export class SellerProductFormComponent implements OnInit {
 
   initForm(product: SellerProductDetailDto | null = null): FormGroup {
     const variantGroups: FormGroup[] = [];
-    
     if (product && product.variants.length > 0) {
       product.variants.forEach(variant => {
         variantGroups.push(this.createVariantGroup(variant));
@@ -137,7 +151,7 @@ export class SellerProductFormComponent implements OnInit {
       productImages: [null, this.isEditMode() ? null : Validators.required], 
       variants: this.fb.array(variantGroups) 
     });
-    
+
     return form;
   }
 
@@ -187,7 +201,6 @@ export class SellerProductFormComponent implements OnInit {
     
     const variantGroup = this.variantsArray.at(index);
     const variantId = variantGroup.get('id')?.value; 
-
     if (variantId && this.isEditMode() && this.productId()) {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '450px',
@@ -248,7 +261,6 @@ export class SellerProductFormComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       const validFiles = this.validateFiles(input.files);
       const variantGroup = this.variantsArray.at(variantIndex) as FormGroup;
-      
       if (validFiles.length > 0) {
         const file = validFiles[0]; 
         variantGroup.patchValue({ image: file });
@@ -285,7 +297,6 @@ export class SellerProductFormComponent implements OnInit {
         };
         await this.sellerProductService.updateProduct(this.productId()!, dto);
         this.toastr.success('Cập nhật thông tin cơ bản thành công!');
-        
       } else {
         if (this.productForm.invalid) {
           this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
@@ -365,7 +376,6 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-
   private buildCreateFormData(formValue: any): FormData {
     const formData = new FormData();
     formData.append('name', formValue.name);
@@ -443,6 +453,7 @@ export class SellerProductFormComponent implements OnInit {
     } finally {
       this.isLoading.set(false);
       input.value = ''; 
+
     }
   }
 
@@ -462,6 +473,7 @@ export class SellerProductFormComponent implements OnInit {
         try {
           await this.sellerProductService.deleteMedia(mediaId);
           this.productGallery.update(currentGallery => 
+
             currentGallery.filter(img => img.id !== mediaId)
           );
           this.toastr.success('Đã xóa ảnh.');
@@ -523,7 +535,6 @@ export class SellerProductFormComponent implements OnInit {
         confirmText: 'Xóa',
       }
     });
-    
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result === true) {
         this.isLoading.set(true);

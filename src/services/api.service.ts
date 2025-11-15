@@ -37,8 +37,9 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
     }
   }
 
-  async getPagination(pageNumber: number = 1, pageSize: number = 10): Promise<PaginationResponseDto> {
+  async getPagination(pageNumber: number = 1, pageSize: number = 10, filter: any = {}): Promise<PaginationResponseDto> {
     try {
+
       const res = await axiosInstance.post(
         `${this.endpoint}/pagination`,
         {
@@ -52,6 +53,7 @@ export class BaseApiService<RequestDto, ResponseDto, PaginationResponseDto = Api
       throw this.helper.ThrowError(error);
     }
   }
+
 
   async create(dto: RequestDto): Promise<ResponseDto> {
     try {

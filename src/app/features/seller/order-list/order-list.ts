@@ -1,5 +1,5 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule, CurrencyPipe } from '@angular/common'; 
+import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { ToastrService } from 'ngx-toastr';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -47,7 +47,6 @@ export class SellerOrderListComponent implements OnInit {
       this.isLoading.set(false);
     }
   }
-
 
   handleUpdateStatus(orderId: number, newStatus: OrderStatus) {
     let title = '';

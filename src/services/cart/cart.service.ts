@@ -6,7 +6,6 @@ import { NGXLogger } from "ngx-logger";
 import { axiosInstance } from "src/configs/axiosInstance";
 import { ApiResponseDto } from "@dtos/api/api.response.dto";
 import { Injectable } from "@angular/core";
-import { CartProductVariantDto } from "@dtos/product-variant/product-variant";
 
 @Injectable({
     providedIn: 'root',

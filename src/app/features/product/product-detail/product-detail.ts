@@ -1,3 +1,4 @@
+
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -12,6 +13,11 @@ import { productDetailMocks, productsMock } from 'src/data/product.data';
 import { CartRequestDto } from '@dtos/cart/cart.request.dto';
 import { CartService } from 'src/services/cart/cart.service';
 import { ToastrService } from 'ngx-toastr';
+import { Store } from '@ngrx/store';
+import { addCart } from '@features/auth/store/cart.actions';
+import { MatDialog } from '@angular/material/dialog';
+import { HelperService } from 'src/helpers/hepler.service';
+import { LoginDialogComponent } from '@shared/component/ui/auth/login-dialog';
 
 @Component({
   selector: 'app-product-detail',
@@ -32,10 +38,13 @@ export class ProductDetailComponent implements OnInit {
   activeTab: string = 'description';
 
   constructor(
-    private readonly route: ActivatedRoute, // 👈 Thêm ActivatedRoute
+    private readonly route: ActivatedRoute,
     private readonly productService: ProductService,
     private readonly cartService: CartService,
     private toast: ToastrService,
+    private store: Store,
+    private dialog: MatDialog,
+    private helperService: HelperService
   ) { }
 
   async ngOnInit(): Promise<void> {
@@ -144,11 +153,29 @@ export class ProductDetailComponent implements OnInit {
   }
 
   async addToCart(): Promise<void> {
+    // Kiểm tra đăng nhập trước
+    const user = this.helperService.getInforUser();
+
+    if (!user) {
+      // Hiển thị dialog yêu cầu đăng nhập
+      this.dialog.open(LoginDialogComponent, {
+        width: '450px',
+        maxWidth: '90vw',
+        panelClass: 'login-dialog',
+        disableClose: false,
+        autoFocus: true
+      });
+
+      return;
+    }
+
+    // Kiểm tra hàng có sẵn không
     if (!this.selectedVariant?.isInStock) {
       this.toast.warning('Sản phẩm này hiện đã hết hàng', 'Cảnh báo');
       return;
     }
 
+    // Tạo item để thêm vào giỏ
     const item: CartRequestDto = {
       productVariantId: this.selectedVariant.id,
       quantity: 1
@@ -157,12 +184,26 @@ export class ProductDetailComponent implements OnInit {
     try {
       await this.cartService.createCartItem(item);
       this.toast.success("Đã thêm vào giỏ hàng", "Thành công");
+      this.store.dispatch(addCart());
     } catch (error) {
       this.toast.error(String(error), "Lỗi");
     }
   }
 
   onAddToFavorite(p: ProductSummaryDto | ProductDetailDto): void {
+    // Có thể thêm check đăng nhập cho favorite nếu cần
+    const user = this.helperService.getInforUser();
+
+    if (!user) {
+      this.dialog.open(LoginDialogComponent, {
+        width: '450px',
+        maxWidth: '90vw',
+        panelClass: 'login-dialog',
+        disableClose: false
+      });
+      return;
+    }
+
     this.toast.info(`Đã thêm "${p.name}" vào danh sách yêu thích!`, 'Yêu thích');
   }
 
