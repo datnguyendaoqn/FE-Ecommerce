@@ -18,8 +18,8 @@
       Đang chuẩn bị
     </button>
     <button 
-      (click)="loadOrders('shipped')"
-      [ngClass]="activeTab() === 'shipped' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      (click)="loadOrders('shipping')"
+      [ngClass]="activeTab() === 'shipping' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
       class="py-4 px-6 font-semibold border-b-2 transition-colors">
       Đang giao
     </button>
@@ -55,7 +55,9 @@
       } @else {
         @for (order of filteredOrders(); track order.orderId) {
           <div class="border border-gray-200 rounded-lg overflow-hidden">
-            <div class="bg-gray-50 p-4 flex justify-between items-center">
+            <div 
+              class="bg-gray-50 p-4 flex justify-between items-center cursor-pointer hover:bg-gray-100"
+              (click)="openDetailDialog(order)">
               <div>
                 <span class="font-semibold text-gray-800">Đơn hàng: #{{ order.orderId }}</span>
                 <span class="text-sm text-gray-500 mx-2">|</span>
@@ -69,11 +71,13 @@
                   'text-green-600': order.status === 'Completed',
                   'text-gray-500': order.status === 'Cancelled'
                 }">
-                {{ order.status === 'Pending' ? 'Chờ xác nhận' : (order.status === 'processing' ? 'Đang chuẩn bị' : (order.status === 'shipped' ? 'Đang giao' : (order.status === 'Completed' ? 'Hoàn thành' : 'Đã hủy'))) }}
+                {{ getSellerStatusText(order.status) }}
               </span>
             </div>
 
-            <div class="p-4 space-y-4">
+            <div 
+              class="p-4 space-y-4 cursor-pointer"
+              (click)="openDetailDialog(order)">
               @for (item of order.items; track item.productName) {
                 <div class="flex gap-4">
                   <img [src]="item.imageUrl || 'assets/images/banner-1.jpg'" class="w-20 h-20 rounded-md object-cover border">
@@ -104,7 +108,6 @@
                     Xác nhận chuẩn bị
                   </button>
                 }
-                
                 @if (order.status === 'processing') {
                   <button 
                     (click)="handleUpdateStatus(order.orderId, 'shipped')"
@@ -113,16 +116,14 @@
                     Bàn giao vận chuyển
                   </button>
                 }
-
                 @if (order.status === 'shipping') {
                   <span class="text-sm text-blue-700 font-medium">(Đang giao hàng)</span>
                 }
-                
                 @if (order.status === 'Completed') {
                   <span class="text-sm text-green-700 font-medium">Đã hoàn thành</span>
                 }
               </div>
-              </div>
+            </div>
           </div>
         }
       }
