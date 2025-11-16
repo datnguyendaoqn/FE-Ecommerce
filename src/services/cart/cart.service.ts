@@ -43,7 +43,7 @@ export class CartService extends BaseApiService<CartRequestDto, CartResponseDto>
 
     async updateQuantityCartItem(cartItemRequestDto: CartUpdateRequestDtp): Promise<boolean | undefined> {
         try {
-            const res = await axiosInstance.put<ApiResponseDto>(`${this.baseUrl}${this.endpoint}/items`, cartItemRequestDto)
+            const res = await axiosInstance.put<ApiResponseDto>(`${this.endpoint}/items`, cartItemRequestDto)
             if (res.data.isSuccess) {
                 return res.data.isSuccess
             }

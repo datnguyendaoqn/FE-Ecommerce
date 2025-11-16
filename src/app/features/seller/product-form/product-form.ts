@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core'; 
 import { CommonModule, CurrencyPipe } from '@angular/common';
 import { MatIcon } from '@angular/material/icon';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -63,7 +63,7 @@ export class SellerProductFormComponent implements OnInit {
     "Xanh navy", "Xanh pastel", "Xanh ngọc",
     "Xanh mint", "Ghi", "Xanh than"
   ];
-
+  
   productImageFiles = signal<File[]>([]);
   allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
@@ -71,12 +71,12 @@ export class SellerProductFormComponent implements OnInit {
     private fb: FormBuilder,
     private sellerProductService: SellerProductService,
     private toastr: ToastrService,
-    private route: ActivatedRoute,
+    private route: ActivatedRoute, 
     private router: Router,
     private categoryService: CategoryService,
     private dialog: MatDialog
   ) {
-    this.productForm = this.initForm();
+    this.productForm = this.initForm(); 
   }
 
   configCurrency = {
@@ -95,7 +95,7 @@ export class SellerProductFormComponent implements OnInit {
 
   ngOnInit() {
     this.loadCategories();
-
+    
     const idParam = this.route.snapshot.paramMap.get('id');
     if (idParam) {
       const id = +idParam;
@@ -104,7 +104,7 @@ export class SellerProductFormComponent implements OnInit {
       this.loadProductForEdit(id);
     } else {
       this.isEditMode.set(false);
-      this.productForm = this.initForm();
+      this.productForm = this.initForm(); 
     }
   }
 
@@ -135,7 +135,6 @@ export class SellerProductFormComponent implements OnInit {
 
   initForm(product: SellerProductDetailDto | null = null): FormGroup {
     const variantGroups: FormGroup[] = [];
-
     if (product && product.variants.length > 0) {
       product.variants.forEach(variant => {
         variantGroups.push(this.createVariantGroup(variant));
@@ -149,8 +148,8 @@ export class SellerProductFormComponent implements OnInit {
       description: [product?.description || ''],
       brand: [product?.brand || ''],
       categoryId: [product?.categoryId || null, [Validators.required]],
-      productImages: [null, this.isEditMode() ? null : Validators.required],
-      variants: this.fb.array(variantGroups)
+      productImages: [null, this.isEditMode() ? null : Validators.required], 
+      variants: this.fb.array(variantGroups) 
     });
 
     return form;
@@ -159,10 +158,10 @@ export class SellerProductFormComponent implements OnInit {
   async loadProductForEdit(id: number) {
     this.isLoading.set(true);
     try {
-      const product = await this.sellerProductService.getProductDetail(id);
-      this.productForm = this.initForm(product);
+      const product = await this.sellerProductService.getProductDetail(id); 
+      this.productForm = this.initForm(product); 
       this.productGallery.set(product.productImages || []);
-
+      
     } catch (error) {
       this.toastr.error(String(error), 'Lỗi tải sản phẩm');
       this.router.navigate(['/seller/products']);
@@ -175,13 +174,13 @@ export class SellerProductFormComponent implements OnInit {
     return this.fb.group({
       id: [variant?.id || null],
       sku: [variant?.sku || '', [Validators.required]],
-      variantSize: [variant?.variantSize || null],
-      color: [variant?.color || null],
+      variantSize: [variant?.variantSize || null], 
+      color: [variant?.color || null], 
       material: [variant?.material || null, [Validators.required]],
       price: [variant?.price || 1000, [Validators.required, Validators.min(1000)]],
       quantity: [variant?.quantity || 0, [Validators.required, Validators.min(0)]],
       image: [null, variant?.id ? null : Validators.required],
-      primaryImage: [variant?.primaryImage || null]
+      primaryImage: [variant?.primaryImage || null] 
     });
   }
 
@@ -199,10 +198,9 @@ export class SellerProductFormComponent implements OnInit {
       this.toastr.warning('Sản phẩm phải có ít nhất 1 phân loại hàng.', 'Không thể xóa');
       return; // Dừng, không cho xóa
     }
-
+    
     const variantGroup = this.variantsArray.at(index);
-    const variantId = variantGroup.get('id')?.value;
-
+    const variantId = variantGroup.get('id')?.value; 
     if (variantId && this.isEditMode() && this.productId()) {
       const dialogRef = this.dialog.open(ConfirmDialogComponent, {
         width: '450px',
@@ -227,7 +225,7 @@ export class SellerProductFormComponent implements OnInit {
           }
         }
       });
-    }
+    } 
     else {
       // (Check length <= 1 đã chạy ở đầu hàm)
       this.variantsArray.removeAt(index);
@@ -251,10 +249,10 @@ export class SellerProductFormComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const validFiles = this.validateFiles(input.files);
-      this.productImageFiles.set(validFiles);
+      this.productImageFiles.set(validFiles); 
       this.productForm.patchValue({ productImages: validFiles.length > 0 ? validFiles : null });
       this.productForm.get('productImages')?.updateValueAndValidity();
-      if (validFiles.length === 0) input.value = '';
+      if (validFiles.length === 0) input.value = ''; 
     }
   }
 
@@ -263,15 +261,14 @@ export class SellerProductFormComponent implements OnInit {
     if (input.files && input.files.length > 0) {
       const validFiles = this.validateFiles(input.files);
       const variantGroup = this.variantsArray.at(variantIndex) as FormGroup;
-
       if (validFiles.length > 0) {
-        const file = validFiles[0];
+        const file = validFiles[0]; 
         variantGroup.patchValue({ image: file });
         variantGroup.get('image')?.updateValueAndValidity();
       } else {
-        variantGroup.patchValue({ image: null });
+        variantGroup.patchValue({ image: null }); 
         variantGroup.get('image')?.updateValueAndValidity();
-        input.value = '';
+        input.value = ''; 
       }
     }
   }
@@ -281,10 +278,10 @@ export class SellerProductFormComponent implements OnInit {
       name: this.productForm.get('name')!,
       categoryId: this.productForm.get('categoryId')!,
     });
-
+    
     if (basicInfoForm.invalid) {
       this.toastr.error('Vui lòng điền Tên sản phẩm và Danh mục.');
-      basicInfoForm.markAllAsTouched();
+      basicInfoForm.markAllAsTouched(); 
       return;
     }
 
@@ -292,7 +289,7 @@ export class SellerProductFormComponent implements OnInit {
 
     try {
       if (this.isEditMode()) {
-        const dto: UpdateProductRequestDto = {
+        const dto: UpdateProductRequestDto = { 
           name: this.productForm.value.name,
           description: this.productForm.value.description,
           brand: this.productForm.value.brand,
@@ -300,7 +297,6 @@ export class SellerProductFormComponent implements OnInit {
         };
         await this.sellerProductService.updateProduct(this.productId()!, dto);
         this.toastr.success('Cập nhật thông tin cơ bản thành công!');
-
       } else {
         if (this.productForm.invalid) {
           this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
@@ -313,7 +309,7 @@ export class SellerProductFormComponent implements OnInit {
         await this.sellerProductService.createProduct(formData);
 
         this.toastr.success('Tạo sản phẩm thành công!');
-        this.router.navigate(['/seller/products']);
+        this.router.navigate(['/seller/products']); 
       }
     } catch (error) {
       this.toastr.error(String(error), 'Đã xảy ra lỗi');
@@ -321,26 +317,26 @@ export class SellerProductFormComponent implements OnInit {
       this.isLoading.set(false);
     }
   }
-
+  
   async onSaveVariant(index: number) {
     const variantGroup = this.variantsArray.at(index) as FormGroup;
-
+    
     // (Kiểm tra 'image' chỉ khi là variant mới)
     if (variantGroup.value.id === null && variantGroup.get('image')?.invalid) {
       this.toastr.error('Vui lòng thêm ảnh cho biến thể mới.');
       variantGroup.markAllAsTouched();
       return;
     }
-
+    
     if (variantGroup.invalid) {
       this.toastr.error('Vui lòng điền đủ thông tin cho biến thể (SKU, Chất liệu, Giá, SL).');
       variantGroup.markAllAsTouched();
       return;
     }
-
+    
     this.isLoading.set(true);
     const variantId = variantGroup.value.id;
-
+    
     try {
       if (variantId) {
         // --- CẬP NHẬT VARIANT ĐÃ CÓ (PUT) ---
@@ -349,18 +345,18 @@ export class SellerProductFormComponent implements OnInit {
           variantSize: variantGroup.value.variantSize,
           color: variantGroup.value.color,
           material: variantGroup.value.material,
-          price: variantGroup.value.price,
+          price: variantGroup.value.price, 
           quantity: variantGroup.value.quantity
         };
         await this.sellerProductService.updateVariant(this.productId()!, variantId, dto);
         this.toastr.success(`Đã cập nhật biến thể (SKU: ${dto.sku})`);
-        variantGroup.markAsPristine();
-
+        variantGroup.markAsPristine(); 
+        
       } else {
         // --- THÊM VARIANT MỚI (VÀO SẢN PHẨM ĐÃ CÓ) (POST) ---
         const formData = this.buildVariantFormData(variantGroup.value);
         const newVariant = await this.sellerProductService.addVariant(this.productId()!, formData);
-
+        
         variantGroup.patchValue({
           id: newVariant.id,
           primaryImage: newVariant.primaryImage,
@@ -369,8 +365,8 @@ export class SellerProductFormComponent implements OnInit {
         // Set image validator thành không bắt buộc nữa
         variantGroup.get('image')?.clearValidators();
         variantGroup.get('image')?.updateValueAndValidity();
-
-        variantGroup.markAsPristine();
+        
+        variantGroup.markAsPristine(); 
         this.toastr.success(`Đã thêm biến thể mới (SKU: ${newVariant.sku})`);
       }
     } catch (error) {
@@ -380,27 +376,26 @@ export class SellerProductFormComponent implements OnInit {
     }
   }
 
-
   private buildCreateFormData(formValue: any): FormData {
     const formData = new FormData();
     formData.append('name', formValue.name);
     formData.append('description', formValue.description || '');
     formData.append('brand', formValue.brand || '');
     formData.append('categoryId', formValue.categoryId.toString());
-
+    
     const productImages = formValue.productImages as File[];
     if (productImages) {
       productImages.forEach((file) => {
         formData.append(`ProductImages`, file, file.name);
       });
     }
-
+    
     formValue.variants.forEach((variant: any, index: number) => {
       formData.append(`Variants[${index}].SKU`, variant.sku);
       formData.append(`Variants[${index}].VariantSize`, variant.variantSize || '');
       formData.append(`Variants[${index}].Color`, variant.color || '');
-      formData.append(`Variants[${index}].Material`, variant.material || '');
-      formData.append(`Variants[${index}].Price`, variant.price.toString());
+      formData.append(`Variants[${index}].Material`, variant.material || ''); 
+      formData.append(`Variants[${index}].Price`, variant.price.toString()); 
       formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
       if (variant.image instanceof File) {
         formData.append(`Variants[${index}].Image`, variant.image, variant.image.name);
@@ -432,17 +427,17 @@ export class SellerProductFormComponent implements OnInit {
   onCancel() {
     this.router.navigate(['/seller/products']);
   }
-
+  
   async onAddGalleryImages(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files || input.files.length === 0) return;
-
+    
     const validFiles = this.validateFiles(input.files);
     if (validFiles.length === 0) return;
 
     const formData = new FormData();
     validFiles.forEach(file => {
-      formData.append('images', file, file.name);
+      formData.append('images', file, file.name); 
     });
 
     this.isLoading.set(true);
@@ -457,7 +452,8 @@ export class SellerProductFormComponent implements OnInit {
       this.toastr.error(String(error), 'Lỗi tải ảnh lên');
     } finally {
       this.isLoading.set(false);
-      input.value = '';
+      input.value = ''; 
+
     }
   }
 
@@ -476,7 +472,8 @@ export class SellerProductFormComponent implements OnInit {
         this.isLoading.set(true);
         try {
           await this.sellerProductService.deleteMedia(mediaId);
-          this.productGallery.update(currentGallery =>
+          this.productGallery.update(currentGallery => 
+
             currentGallery.filter(img => img.id !== mediaId)
           );
           this.toastr.success('Đã xóa ảnh.');
@@ -513,12 +510,12 @@ export class SellerProductFormComponent implements OnInit {
         try {
           await this.sellerProductService.deleteMedia(mediaObj.id);
           variantGroup.patchValue({
-            primaryImage: null,
-            image: null
+            primaryImage: null, 
+            image: null 
           });
           variantGroup.get('image')?.setValidators([Validators.required]);
           variantGroup.get('image')?.updateValueAndValidity();
-
+          
           this.toastr.success('Đã xóa ảnh của biến thể. Bạn có thể tải lên ảnh mới.');
         } catch (error) {
           this.toastr.error(String(error), 'Lỗi xóa ảnh');
@@ -538,14 +535,13 @@ export class SellerProductFormComponent implements OnInit {
         confirmText: 'Xóa',
       }
     });
-
     dialogRef.afterClosed().subscribe(async (result) => {
       if (result === true) {
         this.isLoading.set(true);
         try {
           await this.sellerProductService.deleteProduct(this.productId()!);
           this.toastr.success('Đã xóa sản phẩm thành công.');
-          this.router.navigate(['/seller/products']);
+          this.router.navigate(['/seller/products']); 
         } catch (error) {
           this.toastr.error(String(error), 'Lỗi xóa sản phẩm');
         } finally {

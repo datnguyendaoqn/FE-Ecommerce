@@ -51,9 +51,9 @@ export const routes: Routes = [
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'products', component: SellerProductListComponent },
-      { path: 'product/new', component: SellerProductFormComponent },
+      { path: 'product/new', component: SellerProductFormComponent }, 
       { path: 'product/:id', component: SellerProductFormComponent },
-      { path: 'orders', component: SellerOrderListComponent }
+      { path: 'orders', component: SellerOrderListComponent }  
     ]
   },
   // =================== KẾT THÚC ROUTE SELLER ===================

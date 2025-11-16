@@ -2,8 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
-import { ChartConfiguration, ChartData, registerables } from 'chart.js';
-import { firstValueFrom } from 'rxjs';
+import { ChartConfiguration, ChartData } from 'chart.js';
 
 import { DashboardService } from 'src/services/seller-dashboard/Dashboard.service';
 import {
@@ -21,7 +20,6 @@ import {
     FormsModule,
     BaseChartDirective,
     CurrencyPipe,
-    DecimalPipe,
     DatePipe,
   ],
   providers: [
