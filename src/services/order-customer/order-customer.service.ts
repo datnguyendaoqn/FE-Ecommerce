@@ -11,7 +11,7 @@ import { Injectable } from "@angular/core";
 export class OrderCustomerService {
 
     // Dữ liệu giả lập (mock data)
-    private mockOrders: Order[] = [
+    mockOrders: Order[] = [
         {
             id: 501,
             userId: 1,
@@ -158,7 +158,12 @@ export class OrderCustomerService {
         // Trả về bản sao để tránh thay đổi dữ liệu gốc
         return JSON.parse(JSON.stringify(results));
     }
-
+    async getOrderById(id: number): Promise<Order> {
+        const order = this.mockOrders.find(o => o.id === id);
+        await new Promise(r => setTimeout(r, 200));
+        if (!order) throw new Error("Order not found");
+        return JSON.parse(JSON.stringify(order));
+    }
     /**
      * [MỚI] Cập nhật trạng thái đơn hàng (cho Shop Admin)
      */

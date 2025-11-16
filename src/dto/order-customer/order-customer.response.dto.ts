@@ -50,9 +50,7 @@ export interface Order {
     totalAmount: number; // ORDERS.TOTAL_AMOUNT
     paymentMethod: string; // ORDERS.PAYMENT_METHOD
     cancellationReason?: string | null; // ORDERS.CANCELLATION_REASON
-    
     shippingAddress: ShippingAddress; // Dữ liệu snapshot
-
     createdAt: string; // ORDERS.CREATED_AT (dạng ISO string)
     updatedAt?: string | null; // ORDERS.UPDATED_AT
 

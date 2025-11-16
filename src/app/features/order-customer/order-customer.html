@@ -3,14 +3,10 @@
   <!-- Tabs Điều Hướng -->
   <nav class="bg-white shadow-sm rounded-t-lg mb-4">
     <div class="flex border-b overflow-x-auto no-scrollbar">
-      <button
-        *ngFor="let tab of tabs"
-        (click)="setActiveTab(tab.value)"
-        [ngClass]="{
+      <button *ngFor="let tab of tabs" (click)="setActiveTab(tab.value)" [ngClass]="{
           'border-blue-500 text-blue-500': activeTab === tab.value,
           'border-transparent text-gray-600 hover:text-blue-500': activeTab !== tab.value
-        }"
-        class="py-3 px-4 text-sm sm:text-base border-b-2 font-semibold flex-shrink-0">
+        }" class="py-3 px-4 text-sm sm:text-base border-b-2 font-semibold flex-shrink-0">
         {{ tab.label }}
       </button>
     </div>
@@ -22,13 +18,9 @@
       <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
         <i data-lucide="search" class="w-5 h-5"></i>
       </span>
-      <input
-        type="text"
-        placeholder="Tìm kiếm theo tên Shop, ID đơn hàng hoặc tên sản phẩm"
-        [(ngModel)]="searchTerm"
+      <input type="text" placeholder="Tìm kiếm theo tên Shop, ID đơn hàng hoặc tên sản phẩm" [(ngModel)]="searchTerm"
         (ngModelChange)="onSearchChange($event)"
-        class="w-full pl-10 pr-4 py-2 border bg-gray-50 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm"
-      >
+        class="w-full pl-10 pr-4 py-2 border bg-gray-50 border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-300 text-sm">
     </div>
   </div>
 
@@ -40,7 +32,8 @@
       <svg class="animate-spin h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24">
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor"
-              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+        </path>
       </svg>
     </div>
 
@@ -50,15 +43,15 @@
     </div>
 
     <!-- Danh sách đơn hàng -->
-    <div *ngFor="let order of filteredOrders()" class="bg-white rounded-lg shadow-sm overflow-hidden">
+    <div *ngFor="let order of filteredOrders()" class="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer"
+      (click)="openOrderDetail(order.id)">
 
       <!-- Header đơn hàng -->
       <header class="p-3 sm:p-4 border-b flex justify-between items-center">
         <div class="flex items-center space-x-2">
           <span class="font-semibold text-sm sm:text-base">{{ order.shop.name }}</span>
         </div>
-        <div class="text-sm font-semibold"
-             [ngClass]="{
+        <div class="text-sm font-semibold" [ngClass]="{
                'text-orange-500': order.status === 'PENDING_CONFIRMATION',
                'text-blue-600': order.status === 'SHIPPED',
                'text-green-600': order.status === 'COMPLETED',
@@ -82,20 +75,23 @@
       </div>
 
       <!-- Footer đơn hàng -->
-      <footer class="p-3 sm:p-4 bg-gray-50 flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+      <footer
+        class="p-3 sm:p-4 bg-gray-50 flex flex-col sm:flex-row justify-between items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
         <div class="flex items-center space-x-2">
           <span class="text-gray-700 text-sm">Thành tiền:</span>
           <span class="text-blue-500 text-xl sm:text-2xl font-bold">{{ order.totalAmount | number }}₫</span>
         </div>
         <div class="flex space-x-2">
-          <button *ngIf="order.canReview"
-                  (click)="handleReview(order.id)"
-                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
+          <button *ngIf="order.status === 'SHIPPED'" (click)="confirmReceived(order); $event.stopPropagation()"
+            class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium">
+            Đã nhận hàng
+          </button>
+          <button *ngIf="order.canReview" (click)="handleReview(order.id)"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
             Đánh Giá
           </button>
-          <button *ngIf="order.canRequestReturn || order.status === 'COMPLETED'"
-                  (click)="handleBuyAgain(order.id)"
-                  class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
+          <button *ngIf="order.canRequestReturn || order.status === 'COMPLETED'" (click)="handleBuyAgain(order.id)"
+            class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
             Mua Lại
           </button>
         </div>

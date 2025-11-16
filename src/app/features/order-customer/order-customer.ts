@@ -2,8 +2,9 @@ import { Component, OnInit } from '@angular/core';
 import { Order } from '@dtos/order-customer/order-customer.response.dto';
 import { OrderStatus } from '@dtos/order-customer/order-customer.enum';
 import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { OrderCustomerService } from 'src/services/order-customer/order-customer.service';
+import { Router } from '@angular/router';
 interface Tab {
     label: string;
     value: 'all' | OrderStatus;
@@ -11,7 +12,7 @@ interface Tab {
 @Component({
     selector: 'app-order-customer',
     standalone: true,
-    imports: [FormsModule, CommonModule],
+    imports: [FormsModule, CommonModule,DecimalPipe],
     templateUrl: './order-customer.html',
 })
 export class OrderCustomerComponent implements OnInit {
@@ -28,7 +29,7 @@ export class OrderCustomerComponent implements OnInit {
     searchTerm: string = '';
     isLoading = false;
 
-    constructor(private orderService: OrderCustomerService) { }
+    constructor(private orderService: OrderCustomerService, private router: Router) { }
 
     ngOnInit() {
         this.loadOrders('all');
@@ -55,7 +56,7 @@ export class OrderCustomerComponent implements OnInit {
         return this.orders.filter((o) => o.status === this.activeTab);
     }
 
-    getStatusText(status: OrderStatus| string) {
+    getStatusText(status: OrderStatus | string) {
         switch (status) {
             case OrderStatus.PENDING_CONFIRMATION:
                 return 'Chờ xác nhận';
@@ -68,6 +69,18 @@ export class OrderCustomerComponent implements OnInit {
             default:
                 return status;
         }
+    }
+    openOrderDetail(orderId: number) {
+        this.router.navigate(['/order-customer', orderId]);
+    }
+
+    confirmReceived(order: Order) {
+        this.orderService.updateOrderStatus(order.id, OrderStatus.COMPLETED)
+            .then(updated => {
+                order.status = updated.status;
+                order.statusText = updated.statusText;
+            })
+            .catch(err => console.error(err));
     }
 
     async onSearchChange(term: string) {
