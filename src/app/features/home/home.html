@@ -5,7 +5,7 @@
         <img
           [src]="slide"
           alt="Banner"
-          class="w-full h-[400px] object-cover rounded-2xl"
+          class="w-full h-[500px] object-cover rounded-2xl"
           loading="lazy"
         />
       </ng-template>
@@ -14,6 +14,23 @@
 </div>
 
 <div class="min-h-screen bg-gradient-to-b from-gray-50 to-white">
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="max-w-7xl mx-auto px-4 mb-6">
+    <div class="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+      <mat-icon class="text-red-500 flex-shrink-0">error_outline</mat-icon>
+      <div class="flex-1">
+        <p class="text-red-700 font-medium">{{ errorMessage }}</p>
+        <button 
+          (click)="fetchProducts()"
+          class="text-red-600 hover:text-red-700 text-sm font-medium mt-2 flex items-center gap-1"
+        >
+          <mat-icon class="text-base">refresh</mat-icon>
+          Thử lại
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Featured Products Section -->
   <section class="max-w-7xl mx-auto px-4 mb-16">
     <div class="relative mb-10">
@@ -40,12 +57,25 @@
             <p class="text-gray-600 text-sm mt-1">Top 5 được yêu thích nhất</p>
           </div>
         </div>
-       
       </div>
       <div class="mt-4 h-1 w-24 bg-gradient-to-r from-red-500 to-orange-500 rounded-full"></div>
     </div>
 
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
+    <!-- Loading State for Top 5 -->
+    <div *ngIf="loadingTop5" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
+      <div *ngFor="let i of [1,2,3,4,5]" class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse">
+        <div class="bg-gray-200 h-48 sm:h-56"></div>
+        <div class="p-4 space-y-3">
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Top 5 Products Grid -->
+    <div *ngIf="!loadingTop5 && top5Products.length > 0" 
+         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
       <app-product-card
         *ngFor="let p of top5Products; let i = index"
         [product]="p"
@@ -56,7 +86,14 @@
       ></app-product-card>
     </div>
 
-    <div class="mt-8 flex justify-center">
+    <!-- Empty State for Top 5 -->
+    <div *ngIf="!loadingTop5 && top5Products.length === 0" 
+         class="text-center py-12 bg-gray-50 rounded-2xl">
+      <mat-icon class="text-6xl text-gray-300 mb-4">shopping_bag</mat-icon>
+      <p class="text-gray-500">Chưa có sản phẩm nổi bật</p>
+    </div>
+
+    <div *ngIf="!loadingTop5 && top5Products.length > 0" class="mt-8 flex justify-center">
       <div
         class="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-50 to-orange-50 rounded-full border border-red-200"
       >
@@ -148,7 +185,10 @@
             >
               Tất cả sản phẩm
             </h2>
-            <p class="text-gray-600 text-sm mt-1">{{ totalProducts }} sản phẩm có sẵn</p>
+            <p class="text-gray-600 text-sm mt-1">
+              <span *ngIf="!loading">{{ totalProducts }} sản phẩm có sẵn</span>
+              <span *ngIf="loading">Đang tải...</span>
+            </p>
           </div>
         </div>
 
@@ -190,7 +230,7 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <!-- Category Filter - MULTI-LEVEL -->
+        <!-- Category Filter -->
         <div>
           <label class="text-sm font-medium text-gray-700 mb-2 flex items-center gap-2">
             <mat-icon class="text-base text-gray-500">category</mat-icon>
@@ -224,7 +264,6 @@
               placeholder="Từ"
               class="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
             />
-
             <span class="text-gray-400">-</span>
             <input
               type="text"
@@ -289,8 +328,21 @@
       </div>
     </div>
 
+    <!-- Loading State for Products -->
+    <div *ngIf="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
+      <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse">
+        <div class="bg-gray-200 h-48 sm:h-56"></div>
+        <div class="p-4 space-y-3">
+          <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          <div class="h-6 bg-gray-200 rounded w-1/3"></div>
+        </div>
+      </div>
+    </div>
+
     <!-- Products Grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div *ngIf="!loading && paginatedProducts.length > 0" 
+         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
       <app-product-card
         *ngFor="let p of paginatedProducts; let i = index"
         [product]="p"
@@ -302,8 +354,22 @@
       ></app-product-card>
     </div>
 
+    <!-- Empty State -->
+    <div *ngIf="!loading && paginatedProducts.length === 0" 
+         class="text-center py-20 bg-gray-50 rounded-2xl">
+      <mat-icon class="text-8xl text-gray-300 mb-6">inbox</mat-icon>
+      <h3 class="text-xl font-semibold text-gray-700 mb-2">Không tìm thấy sản phẩm</h3>
+      <p class="text-gray-500 mb-6">Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác</p>
+      <button
+        (click)="resetFilters()"
+        class="px-6 py-3 bg-primary-600 text-white rounded-xl font-medium hover:bg-primary-700 transition-colors"
+      >
+        Xóa bộ lọc
+      </button>
+    </div>
+
     <!-- Pagination Section -->
-    <div class="mt-12 flex flex-col items-center gap-4">
+    <div *ngIf="!loading && paginatedProducts.length > 0" class="mt-12 flex flex-col items-center gap-4">
       <div class="text-sm text-gray-600">
         Hiển thị <span class="font-semibold text-gray-900">{{ (page - 1) * pageSize + 1 }}</span> -
         <span class="font-semibold text-gray-900">{{
@@ -329,20 +395,20 @@
         </button>
 
         <!-- Page Numbers -->
-        <ng-container *ngFor="let p of [].constructor(totalPages); let i = index">
+        <ng-container *ngFor="let pageNum of pageNumbers">
           <button
-            *ngIf="shouldShowPage(i + 1)"
-            (click)="changePage(i + 1)"
+            *ngIf="shouldShowPage(pageNum)"
+            (click)="changePage(pageNum)"
             class="min-w-[40px] h-10 rounded-xl border text-sm font-semibold transition-all duration-300 transform hover:scale-110"
             [ngClass]="
-              page === i + 1
+              page === pageNum
                 ? 'bg-gradient-to-r from-primary-600 to-primary-700 text-white border-primary-600 shadow-lg shadow-primary-600/30'
                 : 'bg-white text-gray-700 border-gray-200 hover:bg-primary-50 hover:text-primary-700 hover:border-primary-300 hover:shadow-md'
             "
           >
-            {{ i + 1 }}
+            {{ pageNum }}
           </button>
-          <span *ngIf="shouldShowEllipsis(i + 1)" class="text-gray-400 px-2">...</span>
+          <span *ngIf="shouldShowEllipsis(pageNum)" class="text-gray-400 px-2">...</span>
         </ng-container>
 
         <!-- Next Button -->
