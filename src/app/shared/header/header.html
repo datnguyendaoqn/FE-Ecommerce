@@ -179,7 +179,7 @@
               <span>Tài khoản của tôi</span>
             </a>
             <a
-              routerLink="/orders"
+              routerLink="/order-customer"
               (click)="closeMenus()"
               class="flex items-center px-4 py-2.5 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
             >
@@ -195,16 +195,6 @@
             >
               <mat-icon class="mr-3">storefront</mat-icon>
               <span>Sản phẩm của tôi</span>
-            </a>
-
-            <a
-              *ngIf="(userRole$ | async) !== 'seller'"
-              routerLink="/registration"
-              (click)="closeMenus()"
-              class="flex items-center px-4 py-3 text-gray-700 hover:bg-primary-50 hover:text-primary-600 transition-colors"
-            >
-              <mat-icon class="mr-3 text-primary-500">storefront</mat-icon>
-              <span>Đăng ký Shop</span>
             </a>
             <a
               routerLink="/wishlist"
@@ -386,7 +376,7 @@
           <span>Tài khoản của tôi</span>
         </a>
         <a
-          routerLink="/orders"
+          routerLink="/order-customer"
           (click)="closeMenus()"
           class="flex items-center px-4 py-3 text-gray-700 hover:bg-gray-50 rounded-lg transition-colors"
         >

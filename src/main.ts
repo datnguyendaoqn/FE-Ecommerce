@@ -13,6 +13,7 @@ import { rootReducers } from './app/store/root.reducer';
 import { provideToastr } from 'ngx-toastr';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { initAxios } from './configs/axiosInstance';
+import { Chart, registerables } from 'chart.js';
 
 
 const initAxiosFactory = () => {
@@ -25,6 +26,7 @@ const initAxiosFactory = () => {
 if (enviroment.production) {
   enableProdMode();
 }
+Chart.register(...registerables);
 
 // Temporarily leave routes empty if there is no router
 bootstrapApplication(AppComponent, {
