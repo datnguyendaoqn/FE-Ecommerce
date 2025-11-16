@@ -4,52 +4,19 @@ import { HelperService } from "src/helpers/hepler.service";
 import { axiosInstance } from "src/configs/axiosInstance";
 import { SellerRegistrationResponseDto } from "@dtos/seller/seller.response.dto";
 import { sellerRegistrationRequestDto } from "@dtos/seller/seller.request.dto";
-import { ApiPaginationResponseDto } from "@dtos/api/api.response.dto"; 
-
-export type OrderStatus = 'Pending' | 'Shipping' | 'Completed' | 'Cancelled';
-
-export interface SellerOrderItemDto {
-  productName: string;
-  imageUrl: string;
-  variantInfo: string;
-  quantity: number;
-  unitPrice: number;
-}
-export interface SellerOrderDto {
-  orderId: number;
-  customerName: string;
-  phone: string;
-  shippingAddress: string;
-  orderDate: string;
-  status: OrderStatus;
-  totalAmountForSeller: number;
-  items: SellerOrderItemDto[];
-}
-interface BackendOrderItemDto {
-  productName: string;
-  imageUrl: string;
-  variantName: string; 
-  quantity: number;
-  price: number; 
-}
-interface BackendOrderDto {
-  id: number; 
-  shippingName: string; 
-  shippingPhone: string; 
-  shippingAddress: string;
-  createdAt: string; 
-  status: OrderStatus;
-  totalAmount: number; 
-  items: BackendOrderItemDto[];
-}
-
+import { ApiPaginationResponseDto } from "@dtos/api/api.response.dto";
+import {
+  SellerOrderDto,
+  BackendOrderDto,
+  SellerOrderApiResponse,
+  OrderStatus
+} from "@dtos/order/order";
 
 @Injectable({
   providedIn: "root",
 })
 export class SellerService {
-  endPoint: string = "http://localhost:8080/api/sellers";
-
+  endPoint: string = "/seller";
   constructor(
     private readonly helper: HelperService,
     private readonly logger: NGXLogger
@@ -59,7 +26,7 @@ export class SellerService {
   async register(sellerRequestDto: sellerRegistrationRequestDto): Promise<SellerRegistrationResponseDto> {
     this.logger.debug(`endPoint: ${this.endPoint}/registration`);
     try {
-      const res = await axiosInstance.post(`${this.endPoint}/registration`, sellerRequestDto);
+      const res = await axiosInstance.post(`${this.helper.getBaseUrl()}${this.endPoint}/registration`, sellerRequestDto);
       return res.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -69,8 +36,8 @@ export class SellerService {
   async getSellerOrders(status: OrderStatus, pageNumber: number = 1, pageSize: number = 20): Promise<ApiPaginationResponseDto<SellerOrderDto>> {
     this.logger.debug(`Đang tải đơn hàng: status=${status}, page=${pageNumber}`);
     try {
-      const res = await axiosInstance.get<any>(
-        `${this.endPoint}/orders`, 
+      const res = await axiosInstance.get<SellerOrderApiResponse>(
+        `${this.helper.getBaseUrl()}${this.endPoint}/orders`,
         {
           params: {
             status: status,
@@ -97,21 +64,19 @@ export class SellerService {
         };
       }
 
-      const mappedItems = backendPagedData.items.map((order: BackendOrderDto) => 
-        this.mapBackendOrderToFrontend(order)
-      );
+      const mappedItems = backendPagedData.items.map((order: BackendOrderDto) => this.mapBackendOrderToFrontend(order));
 
       const frontendResponse: ApiPaginationResponseDto<SellerOrderDto> = {
         isSuccess: backendResponse.isSuccess,
         code: backendResponse.code,
         message: backendResponse.message,
-        data: { 
-          items: mappedItems 
+        data: {
+          items: mappedItems
         },
-        pageNumber: backendPagedData.pageNumber,
-        pageSize: backendPagedData.pageSize,
-        totalCount: backendPagedData.totalCount,
-        totalPage: backendPagedData.totalPages 
+        pageNumber: backendResponse.pageNumber,
+        pageSize: backendResponse.pageSize,
+        totalCount: backendResponse.totalCount,
+        totalPage: backendResponse.totalPage
       };
 
       return frontendResponse;
@@ -133,16 +98,31 @@ export class SellerService {
       items: order.items.map(item => ({
         productName: item.productName,
         imageUrl: item.imageUrl,
-        variantInfo: item.variantName, 
+        variantInfo: item.variantName,
         quantity: item.quantity,
-        unitPrice: item.price 
+        unitPrice: item.price
       }))
     };
   }
 
-  async updateOrderStatus(orderId: number, newStatus: OrderStatus): Promise<any> {
-    this.logger.warn(`(CHỨC NĂNG CHƯA HOÀN THIỆN) Yêu cầu cập nhật đơn hàng #${orderId} sang ${newStatus}. API backend chưa tồn tại.`);
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return true; 
+  async updateOrderStatus(orderId: number, newStatus: OrderStatus): Promise<boolean> {
+    this.logger.debug(`Yêu cầu cập nhật đơn hàng #${orderId} sang ${newStatus}.`);
+
+    const requestBody = {
+      NewStatus: newStatus
+    };
+    try {
+      const res = await axiosInstance.patch<ApiPaginationResponseDto<any>>(
+        `${this.helper.getBaseUrl()}${this.endPoint}/orders/${orderId}/status`,
+        requestBody
+      );
+      if (res.data.isSuccess) {
+        return true;
+      }
+      throw new Error(res.data.message || "Cập nhật thất bại");
+    } catch (error) {
+      this.logger.error(`Lỗi khi cập nhật trạng thái đơn hàng #${orderId}.`, error);
+      throw this.helper.ThrowError(error);
+    }
   }
 }

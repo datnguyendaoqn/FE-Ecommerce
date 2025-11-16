@@ -5,8 +5,6 @@ import { provideStore } from '@ngrx/store';
 import { provideStoreDevtools } from '@ngrx/store-devtools';
 import { routes } from './app.routes';
 import { rootReducers } from './store/root.reducer';
-import { provideHttpClient, withInterceptors } from '@angular/common/http';
-import { authInterceptor } from '@core/interceptors/auth.interceptor';
 
 export const appConfig: ApplicationConfig = {
     providers: [
@@ -14,7 +12,6 @@ export const appConfig: ApplicationConfig = {
         provideRouter(routes),
         provideStore(rootReducers),
         provideStoreDevtools({ maxAge: 25 }), // Optional: để debug với Redux DevTools,
-        provideHttpClient(withInterceptors([authInterceptor]))
     ]
     
 };
