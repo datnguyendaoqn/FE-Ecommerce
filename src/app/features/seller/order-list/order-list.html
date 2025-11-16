@@ -18,8 +18,8 @@
       Đang chuẩn bị
     </button>
     <button 
-      (click)="loadOrders('shipping')"
-      [ngClass]="activeTab() === 'shipping' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+      (click)="loadOrders('shipped')"
+      [ngClass]="activeTab() === 'shipped' ? 'border-primary-600 text-primary-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
       class="py-4 px-6 font-semibold border-b-2 transition-colors">
       Đang giao
     </button>
@@ -69,7 +69,7 @@
                   'text-green-600': order.status === 'Completed',
                   'text-gray-500': order.status === 'Cancelled'
                 }">
-                {{ order.status === 'Pending' ? 'Chờ xác nhận' : (order.status === 'processing' ? 'Đang chuẩn bị' : (order.status === 'shipping' ? 'Đang giao' : (order.status === 'Completed' ? 'Hoàn thành' : 'Đã hủy'))) }}
+                {{ order.status === 'Pending' ? 'Chờ xác nhận' : (order.status === 'processing' ? 'Đang chuẩn bị' : (order.status === 'shipped' ? 'Đang giao' : (order.status === 'Completed' ? 'Hoàn thành' : 'Đã hủy'))) }}
               </span>
             </div>
 

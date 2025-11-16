@@ -17,8 +17,7 @@ import {
   providedIn: "root",
 })
 export class SellerService {
-  endPoint: string = "http://localhost:8080/api/seller";
-
+  endPoint: string = "/seller";
   constructor(
     private readonly helper: HelperService,
     private readonly logger: NGXLogger
@@ -28,7 +27,7 @@ export class SellerService {
   async register(sellerRequestDto: sellerRegistrationRequestDto): Promise<SellerRegistrationResponseDto> {
     this.logger.debug(`endPoint: ${this.endPoint}/registration`);
     try {
-      const res = await axiosInstance.post(`${this.endPoint}/registration`, sellerRequestDto);
+      const res = await axiosInstance.post(`${this.helper.getBaseUrl()}${this.endPoint}/registration`, sellerRequestDto);
       return res.data;
     } catch (error) {
       throw this.helper.ThrowError(error);
@@ -39,7 +38,7 @@ export class SellerService {
     this.logger.debug(`Đang tải đơn hàng: status=${status}, page=${pageNumber}`);
     try {
       const res = await axiosInstance.get<SellerOrderApiResponse>(
-        `${this.endPoint}/orders`,
+        `${this.helper.getBaseUrl()}${this.endPoint}/orders`,
         {
           params: {
             status: status,
@@ -115,7 +114,7 @@ export class SellerService {
     };
     try {
       const res = await axiosInstance.patch<ApiPaginationResponseDto<any>>(
-        `${this.endPoint}/orders/${orderId}/status`,
+        `${this.helper.getBaseUrl()}${this.endPoint}/orders/${orderId}/status`,
         requestBody
       );
       if (res.data.isSuccess) {
