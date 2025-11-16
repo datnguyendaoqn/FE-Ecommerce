@@ -16,7 +16,7 @@ import { DashboardComponent } from '@features/seller/dashboard/dashboard';
 import { SellerProductListComponent } from '@features/seller/product-list/product-list';
 import { SellerRegistrationComponent } from '@features/seller/register/registration';
 import { OrderCustomerComponent } from '@features/order-customer/order-customer';
-import { OrderCustomerDetailComponent } from '@features/order-customer/order-customer-detail';
+import { OrderDetailComponent } from '@features/order-customer/order-customer-detail';
 // ========== THÊM IMPORT MỚI ==========
 import { SellerOrderListComponent } from '@features/seller/order-list/order-list';
 import { SellerProductFormComponent } from '@features/seller/product-form/product-form';
@@ -38,7 +38,7 @@ export const routes: Routes = [
       { path: "product/:id", component: ProductDetailComponent },
       { path: "address-books", component: AddressBookComponent },
       { path: "order-customer", component:OrderCustomerComponent},
-      {path: 'order-customer/:id', component: OrderCustomerDetailComponent}
+      {path: 'order-customer/:id', component: OrderDetailComponent}
     ]
   },
 

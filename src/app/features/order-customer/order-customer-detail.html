@@ -1,30 +1,32 @@
-    <div class="container mx-auto max-w-4xl p-4">
+<div class="container mx-auto max-w-4xl p-4">
 
+  <!-- Loading -->
   <div *ngIf="isLoading" class="text-center py-20">
     <p class="text-gray-500">Đang tải đơn hàng...</p>
   </div>
 
+  <!-- Order details -->
   <div *ngIf="order" class="bg-white rounded-lg shadow p-4 space-y-4">
 
-    <h2 class="text-xl font-bold">Chi tiết đơn hàng #{{ order?.id }}</h2>
+    <h2 class="text-xl font-bold">Chi tiết đơn hàng #{{ order.id }}</h2>
 
-    <!-- Trạng thái -->
+    <!-- Status -->
     <div class="flex justify-between items-center">
       <span class="font-medium">Trạng thái:</span>
-      <span class="font-bold text-blue-600">{{ order?.statusText }}</span>
+      <span class="font-bold text-blue-600">{{ order.status }}</span>
     </div>
 
     <hr>
 
-    <!-- Shop -->
+    <!-- Shop info -->
     <div>
       <p class="font-semibold">Cửa hàng</p>
-      <p>{{ order?.shop?.name }}</p>
+      <p>{{ order.shopName }}</p>
     </div>
 
     <hr>
 
-    <!-- Sản phẩm -->
+    <!-- Products -->
     <div>
       <p class="font-semibold mb-2">Sản phẩm</p>
 
@@ -37,32 +39,46 @@
           <p class="text-sm">SL: {{ item.quantity }}</p>
         </div>
 
-        <div class="text-blue-500 font-semibold">{{ item.priceAtPurchase | number }}₫</div>
+        <div class="text-blue-500 font-semibold">{{ item.price | number:'1.0-0' }}₫</div>
       </div>
     </div>
 
     <hr>
 
-    <!-- Địa chỉ giao hàng -->
+    <!-- Shipping address -->
     <div>
       <p class="font-semibold">Địa chỉ giao hàng</p>
-      <p>{{ order?.shippingAddress?.fullName }} | {{ order?.shippingAddress?.phone }}</p>
+      <p>{{ order.shippingName }} | {{ order.shippingPhone }}</p>
       <p>
-        {{ order?.shippingAddress?.addressLine }},
-        {{ order?.shippingAddress?.ward }},
-        {{ order?.shippingAddress?.district }},
-        {{ order?.shippingAddress?.city }}
+        {{ order.shippingAddressLine }},
+        {{ order.shippingWard }},
+        {{ order.shippingDistrict }},
+        {{ order.shippingCity }}
       </p>
     </div>
 
     <hr>
 
-    <!-- Tổng tiền -->
+    <!-- Total -->
     <div class="flex justify-between items-center">
       <span class="text-lg font-semibold">Tổng tiền:</span>
-      <span class="text-2xl text-blue-600 font-bold">{{ order?.totalAmount | number }}₫</span>
+      <span class="text-2xl text-blue-600 font-bold">{{ order.totalAmount | number:'1.0-0' }}₫</span>
+    </div>
+
+    <!-- Action buttons -->
+    <div class="pt-4 space-x-2">
+      <button *ngIf="order.status === 'PENDING_CONFIRMATION'"
+              class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+              (click)="onCancelOrder(order!)">
+        Hủy đơn hàng
+      </button>
+
+      <button *ngIf="order.status === 'SHIPPED'"
+              class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
+              (click)="onConfirmDelivery(order!)">
+        Đã nhận hàng
+      </button>
     </div>
 
   </div>
-
 </div>

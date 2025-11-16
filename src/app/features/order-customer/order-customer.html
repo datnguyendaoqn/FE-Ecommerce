@@ -43,19 +43,17 @@
     </div>
 
     <!-- Danh sách đơn hàng -->
-    <div *ngFor="let order of filteredOrders()" class="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer"
-      (click)="openOrderDetail(order.id)">
-
+    <div *ngFor="let order of filteredOrders()" class="bg-white rounded-lg shadow-sm overflow-hidden cursor-pointer">
       <!-- Header đơn hàng -->
       <header class="p-3 sm:p-4 border-b flex justify-between items-center">
         <div class="flex items-center space-x-2">
-          <span class="font-semibold text-sm sm:text-base">{{ order.shop.name }}</span>
+          <span class="font-semibold text-sm sm:text-base">{{ order.shopName }}</span>
         </div>
         <div class="text-sm font-semibold" [ngClass]="{
-               'text-orange-500': order.status === 'PENDING_CONFIRMATION',
-               'text-blue-600': order.status === 'SHIPPED',
-               'text-green-600': order.status === 'COMPLETED',
-               'text-gray-500': order.status === 'CANCELLED'
+               'text-orange-500': order.status.toLowerCase() === 'pending',
+               'text-blue-600': order.status.toLowerCase() === 'shipped',
+               'text-green-600': order.status.toLowerCase() === 'completed',
+               'text-gray-500': order.status.toLowerCase() === 'cancelled'
              }">
           {{ getStatusText(order.status) }}
         </div>
@@ -70,7 +68,7 @@
           <p class="text-sm">SL: {{ item.quantity }}</p>
         </div>
         <div class="text-right text-blue-500 font-medium text-sm sm:text-base">
-          {{ item.priceAtPurchase | number }}₫
+          {{ item.price | number }}₫
         </div>
       </div>
 
@@ -82,15 +80,20 @@
           <span class="text-blue-500 text-xl sm:text-2xl font-bold">{{ order.totalAmount | number }}₫</span>
         </div>
         <div class="flex space-x-2">
-          <button *ngIf="order.status === 'SHIPPED'" (click)="confirmReceived(order); $event.stopPropagation()"
+          <button *ngIf="order.status.toLowerCase() === 'shipped'" (click)="confirmReceived(order)"
             class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm font-medium">
             Đã nhận hàng
+          </button>
+          <button *ngIf="order.status.toLowerCase() === 'pending' || order.status.toLowerCase() === 'completed'"
+            (click)="cancelOrder(order)"
+            class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm font-medium">
+            Hủy đơn hàng
           </button>
           <button *ngIf="order.canReview" (click)="handleReview(order.id)"
             class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
             Đánh Giá
           </button>
-          <button *ngIf="order.canRequestReturn || order.status === 'COMPLETED'" (click)="handleBuyAgain(order.id)"
+          <button *ngIf="order.canRequestReturn" (click)="handleBuyAgain(order.id)"
             class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 text-sm font-medium">
             Mua Lại
           </button>

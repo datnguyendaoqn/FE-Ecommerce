@@ -1,100 +1,120 @@
-import { Component, OnInit } from '@angular/core';
-import { Order } from '@dtos/order-customer/order-customer.response.dto';
-import { OrderStatus } from '@dtos/order-customer/order-customer.enum';
-import { FormsModule } from '@angular/forms';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { OrderCustomerService } from 'src/services/order-customer/order-customer.service';
-import { Router } from '@angular/router';
+import { CommonModule, DecimalPipe } from "@angular/common";
+import { Component, OnInit } from "@angular/core";
+import { FormsModule } from "@angular/forms";
+import { Router, RouterModule } from "@angular/router";  
+import { CustomerCancelOrderRequestDto } from "@dtos/order-customer/CustomerCancelOrder.request.dto";
+import { CustomerOrderResponseDto } from "@dtos/order-customer/CustomerOrder.response.dto";
+import { NGXLogger } from "ngx-logger";
+import { CustomerOrderService } from "src/services/order-customer/order-customer.service";
+
 interface Tab {
-    label: string;
-    value: 'all' | OrderStatus;
+  label: string;
+  value: string;
 }
 @Component({
     selector: 'app-order-customer',
     standalone: true,
-    imports: [FormsModule, CommonModule,DecimalPipe],
+    imports: [FormsModule, CommonModule,DecimalPipe,RouterModule ],
     templateUrl: './order-customer.html',
 })
 export class OrderCustomerComponent implements OnInit {
-    tabs: Tab[] = [
-        { label: 'Tất cả', value: 'all' },
-        { label: 'Chờ xác nhận', value: OrderStatus.PENDING_CONFIRMATION },
-        { label: 'Vận chuyển', value: OrderStatus.SHIPPED },
-        { label: 'Hoàn thành', value: OrderStatus.COMPLETED },
-        { label: 'Đã hủy', value: OrderStatus.CANCELLED },
-    ];
 
-    activeTab: 'all' | OrderStatus = 'all';
-    orders: Order[] = [];
-    searchTerm: string = '';
-    isLoading = false;
+  orders: CustomerOrderResponseDto[] = [];
+  isLoading: boolean = false;
+  searchTerm: string = '';
+  activeTab: string = 'all';
 
-    constructor(private orderService: OrderCustomerService, private router: Router) { }
+  tabs: Tab[] = [
+    { label: 'Tất cả', value: 'all' },
+    { label: 'Chờ xác nhận', value: 'pending' },
+    { label: 'Đang vận chuyển', value: 'shipped' },
+    { label: 'Hoàn tất', value: 'completed' },
+    { label: 'Đã hủy', value: 'cancelled' },
+  ];
 
-    ngOnInit() {
-        this.loadOrders('all');
+  constructor(
+    private readonly orderService: CustomerOrderService,
+    private readonly logger: NGXLogger
+  ) {}
+
+  ngOnInit(): void {
+    this.loadOrders();
+  }
+
+  async loadOrders() {
+    this.isLoading = true;
+    try {
+      const res = await this.orderService.getMyOrders();
+      this.orders = res.data.items || [];
+    } catch (err) {
+      console.error(err);
+      alert('Tải danh sách đơn hàng thất bại');
+    } finally {
+      this.isLoading = false;
     }
+  }
 
-    async setActiveTab(tab: 'all' | OrderStatus) {
-        this.activeTab = tab;
-        await this.loadOrders(tab);
-    }
+  filteredOrders(): CustomerOrderResponseDto[] {
+    return this.orders
+      .filter(o => this.activeTab === 'all' || o.status.toLowerCase() === this.activeTab)
+      .filter(o =>
+        !this.searchTerm ||
+        o.shopName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
+        o.id.toString().includes(this.searchTerm) ||
+        o.items?.some(i => i.productName.toLowerCase().includes(this.searchTerm.toLowerCase()))
+      );
+  }
 
-    async loadOrders(status: 'all' | OrderStatus) {
-        this.isLoading = true;
-        try {
-            this.orders = await this.orderService.getOrders(status);
-        } catch (err) {
-            this.orders = [];
-        } finally {
-            this.isLoading = false;
-        }
-    }
+  setActiveTab(tabValue: string) {
+    this.activeTab = tabValue;
+  }
 
-    filteredOrders(): Order[] {
-        if (this.activeTab === 'all') return this.orders;
-        return this.orders.filter((o) => o.status === this.activeTab);
+  getStatusText(status: string): string {
+    switch (status.toLowerCase()) {
+      case 'pending': return 'Chờ xác nhận';
+      case 'shipped': return 'Đang vận chuyển';
+      case 'completed': return 'Hoàn tất';
+      case 'cancelled': return 'Đã hủy';
+      default: return status;
     }
+  }
 
-    getStatusText(status: OrderStatus | string) {
-        switch (status) {
-            case OrderStatus.PENDING_CONFIRMATION:
-                return 'Chờ xác nhận';
-            case OrderStatus.SHIPPED:
-                return 'Đang vận chuyển';
-            case OrderStatus.COMPLETED:
-                return 'Hoàn thành';
-            case OrderStatus.CANCELLED:
-                return 'Đã hủy';
-            default:
-                return status;
-        }
+  async confirmReceived(order: CustomerOrderResponseDto) {
+    if (!order || order.status.toLowerCase() !== 'shipped') return;
+    try {
+      await this.orderService.confirmDelivery(order.id);
+      alert('Xác nhận đã nhận hàng thành công');
+      this.loadOrders();
+    } catch (err) {
+      console.error(err);
+      alert('Xác nhận thất bại');
     }
-    openOrderDetail(orderId: number) {
-        this.router.navigate(['/order-customer', orderId]);
-    }
+  }
 
-    confirmReceived(order: Order) {
-        this.orderService.updateOrderStatus(order.id, OrderStatus.COMPLETED)
-            .then(updated => {
-                order.status = updated.status;
-                order.statusText = updated.statusText;
-            })
-            .catch(err => console.error(err));
+  async cancelOrder(order: CustomerOrderResponseDto) {
+    if (!order || order.status.toLowerCase() === 'cancelled') return;
+    const reason = prompt('Vui lòng nhập lý do hủy đơn:');
+    if (!reason) return;
+    const cancelReq: CustomerCancelOrderRequestDto = {Reason:reason };
+    try {
+      await this.orderService.cancelOrder(order.id, cancelReq);
+      alert('Hủy đơn hàng thành công');
+      this.loadOrders();
+    } catch (err) {
+      console.error(err);
+      alert('Hủy đơn hàng thất bại');
     }
+  }
 
-    async onSearchChange(term: string) {
-        this.searchTerm = term;
-        await this.loadOrders(this.activeTab);
-    }
+  handleReview(orderId: number) {
+    alert(`Đi tới đánh giá cho đơn hàng #${orderId}`);
+  }
 
-    async handleBuyAgain(orderId: number) {
-        await this.orderService.buyAgain(orderId);
-        alert(`Yêu cầu mua lại đơn ${orderId} thành công`);
-    }
+  handleBuyAgain(orderId: number) {
+    alert(`Mua lại đơn hàng #${orderId}`);
+  }
 
-    async handleReview(orderId: number) {
-        await this.orderService.reviewOrder(orderId);
-        alert(`Điều hướng đánh giá đơn ${orderId}`);
-    }
+  onSearchChange(value: string) {
+    this.searchTerm = value;
+  }
 }
