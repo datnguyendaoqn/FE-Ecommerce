@@ -60,7 +60,7 @@ export class SellerOrderListComponent implements OnInit {
       message = `Bạn có chắc muốn bắt đầu chuẩn bị đơn hàng <b>#${orderId}</b>?`;
       confirmText = 'Xác nhận';
     } 
-    else if (newStatus === 'shipping') {
+    else if (newStatus === 'shipped') {
       title = 'Xác nhận Giao hàng';
       message = `Bạn có chắc đã bàn giao đơn hàng <b>#${orderId}</b> cho đơn vị vận chuyển?`;
       confirmText = 'Xác nhận Giao';
@@ -127,7 +127,7 @@ export class SellerOrderListComponent implements OnInit {
     switch (status) {
       case 'Pending': return 'Chờ xác nhận';
       case 'processing': return 'Đang chuẩn bị';
-      case 'shipping': return 'Đang giao';
+      case 'shipped': return 'Đang giao';
       case 'Completed': return 'Hoàn thành';
       case 'Cancelled': return 'Đã hủy';
       default: return status;
