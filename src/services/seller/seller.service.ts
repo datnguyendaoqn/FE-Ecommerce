@@ -56,11 +56,14 @@ export class SellerService {
           isSuccess: backendResponse.isSuccess,
           code: backendResponse.code,
           message: backendResponse.message,
-          data: { items: [] },
-          pageNumber: 1,
-          pageSize: pageSize,
-          totalCount: 0,
-          totalPage: 0
+          data: {
+            items: [],
+            pageNumber: 1,
+            pageSize: pageSize,
+            totalCount: 0,
+            totalPage: 0
+          },
+
         };
       }
 
@@ -71,12 +74,13 @@ export class SellerService {
         code: backendResponse.code,
         message: backendResponse.message,
         data: {
-          items: mappedItems
+          items: mappedItems,
+          pageNumber: backendResponse.data.pageNumber,
+          pageSize: backendResponse.data.pageSize,
+          totalCount: backendResponse.data.totalCount,
+          totalPage: backendResponse.data.totalPage
         },
-        pageNumber: backendResponse.pageNumber,
-        pageSize: backendResponse.pageSize,
-        totalCount: backendResponse.totalCount,
-        totalPage: backendResponse.totalPage
+
       };
 
       return frontendResponse;

@@ -58,7 +58,7 @@ export class HomeComponent implements OnInit {
   pageSize = 8;
   totalItems = 0;
   errorMessage: string | null = null;
-  
+
   configCurrency = {
     align: "left",
     allowNegative: false,
@@ -100,36 +100,19 @@ export class HomeComponent implements OnInit {
 
   async ngOnInit() {
     this.logger.info('HomeComponent initialized');
-    
+
     // Load data in parallel
     await Promise.all([
       this.fetchCategories(),
       this.fetchProducts(),
       this.fetchTop5Products()
     ]);
-    
+
     this.logger.info('All data loaded', {
       productsCount: this.products.length,
       top5Count: this.top5Products.length,
       categoriesCount: this.categories.length
     });
-  }
-
-  get paginatedProducts(): ProductSummaryDto[] {
-    const start = (this.page - 1) * this.pageSize;
-    const end = start + this.pageSize;
-    const paginated = this.products.slice(start, end);
-    
-    this.logger.debug('Paginated products', {
-      page: this.page,
-      pageSize: this.pageSize,
-      start,
-      end,
-      totalProducts: this.products.length,
-      paginatedCount: paginated.length
-    });
-    
-    return paginated;
   }
 
   async fetchCategories() {
@@ -175,16 +158,16 @@ export class HomeComponent implements OnInit {
   async fetchProducts() {
     this.loading = true;
     this.errorMessage = null;
-    
+
     try {
       const filterParams = this.buildFilterParams();
-      
+
       this.logger.info('Fetching products with filters', {
         page: this.page,
         pageSize: this.pageSize,
         filters: filterParams
       });
-      
+
       const data = await this.productService.getPagination(
         this.page,
         this.pageSize,
@@ -195,25 +178,27 @@ export class HomeComponent implements OnInit {
 
       // Check if response has the expected structure
       if (data && data.data && data.data.items) {
+        // API đã trả về dữ liệu phân trang, không cần slice thêm
         this.products = data.data.items;
-        this.totalItems = data.totalCount || 0;
-        
+        this.totalItems = data.data.totalCount || 0;
+
         this.logger.info('Products loaded successfully', {
           count: this.products.length,
           totalItems: this.totalItems,
+          currentPage: this.page,
           products: this.products
         });
       } else {
         // Response structure might be different
         this.logger.warn('Unexpected API response structure', data);
-        
+
         // Try alternative structure
         if (data && Array.isArray(data)) {
           this.products = data;
           this.totalItems = data.length;
         } else if (data && data.data.items) {
           this.products = data.data.items;
-          this.totalItems = data.totalCount || data.data.items.length;
+          this.totalItems = data.data.totalCount || data.data.items.length;
         } else {
           throw new Error('Invalid API response structure');
         }
@@ -222,13 +207,16 @@ export class HomeComponent implements OnInit {
     } catch (error) {
       this.logger.error('Error loading products, using mock data', error);
       this.errorMessage = 'Không thể tải sản phẩm từ server. Đang hiển thị dữ liệu mẫu.';
-      
-      // Use mock data as fallback
-      this.products = productsMock;
+
+      // Use mock data as fallback with proper pagination
+      const start = (this.page - 1) * this.pageSize;
+      const end = start + this.pageSize;
+      this.products = productsMock.slice(start, end);
       this.totalItems = productsMock.length;
-      
+
       this.logger.info('Using mock data', {
-        count: this.products.length
+        count: this.products.length,
+        totalItems: this.totalItems
       });
     } finally {
       this.loading = false;
@@ -239,11 +227,11 @@ export class HomeComponent implements OnInit {
     this.loadingTop5 = true;
     try {
       this.logger.info('Fetching top 5 products...');
-      
+
       const filter = {
         SortBy: "popular"
       };
-      
+
       const data = await this.productService.getPagination(1, 5, filter);
 
       this.logger.info('Top 5 products API response', data);
@@ -303,7 +291,7 @@ export class HomeComponent implements OnInit {
 
   async applyFilters() {
     this.logger.info('Applying filters', this.filters);
-    this.page = 1;
+    this.page = 1; // Reset về trang 1 khi apply filter
     await this.fetchProducts();
     this.showFilterPanel = false;
   }
@@ -317,7 +305,7 @@ export class HomeComponent implements OnInit {
       minRating: null,
       sortBy: ''
     };
-    this.page = 1;
+    this.page = 1; // Reset về trang 1
     await this.fetchProducts();
   }
 
@@ -346,11 +334,12 @@ export class HomeComponent implements OnInit {
     if (p < 1 || p > this.totalPages || p === this.page) {
       return;
     }
-    
+
     this.logger.info('Changing page', { from: this.page, to: p });
     this.page = p;
+    
+    // Gọi lại API với page mới
     await this.fetchProducts();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
   handleAddToCart(product: ProductSummaryDto) {

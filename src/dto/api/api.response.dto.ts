@@ -10,9 +10,10 @@ export interface ApiPaginationResponseDto<T> {
     message?: string,
     data: {
         items: T[]
+        pageNumber: number,
+        pageSize: number,
+        totalCount: number,
+        totalPage: number
     },
-    pageNumber: number,
-    pageSize: number,
-    totalCount: number,
-    totalPage: number
+
 }

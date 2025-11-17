@@ -4,6 +4,7 @@ import { MatIcon } from '@angular/material/icon';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatRadioModule } from '@angular/material/radio';
 import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { CartProductVariantDto } from '@dtos/product-variant/product-variant';
 import { CartResponseDto } from '@dtos/cart/cart.response.dto';
 import { CartService } from 'src/services/cart/cart.service';
@@ -12,22 +13,31 @@ import { NGXLogger } from 'ngx-logger';
 import { CartShopDto } from '@dtos/cart/cart.dto';
 import { AddressBooksSerivce } from 'src/services/address-books/address-books.service';
 import { Store } from '@ngrx/store';
-import { addCart, previousCart, resetCart } from '@features/auth/store/cart.actions';
+import { addCart, loadCartSuccess, previousCart, resetCart } from '@features/auth/store/cart.actions';
 import { AddressSelectDialogComponent } from '@shared/component/ui/address-books/dialog';
 import { OrderService } from 'src/services/order/order.service';
 import { MatDialog } from '@angular/material/dialog';
 import { HelperService } from 'src/helpers/hepler.service';
 
-// Extend để thêm trạng thái selected
+// Extend để thêm trạng thái selected và note
 interface CartShopWithSelection extends CartShopDto {
   selected: boolean;
+  note: string; // Thêm note cho shop
   items: (CartProductVariantDto & { selected: boolean })[];
 }
 
 @Component({
   selector: 'app-cart',
   standalone: true,
-  imports: [CommonModule, RouterModule, MatIcon, MatCheckboxModule, MatRadioModule, CurrencyPipe],
+  imports: [
+    CommonModule,
+    RouterModule,
+    MatIcon,
+    MatCheckboxModule,
+    MatRadioModule,
+    CurrencyPipe,
+    FormsModule
+  ],
   templateUrl: './cart.html',
 })
 export class CartComponent implements OnInit {
@@ -41,7 +51,7 @@ export class CartComponent implements OnInit {
     private readonly store: Store,
     private readonly orderService: OrderService,
     private readonly helperService: HelperService
-  ) {}
+  ) { }
 
   // Dữ liệu cart với trạng thái selection
   shops = signal<CartShopWithSelection[]>([]);
@@ -159,10 +169,11 @@ export class CartComponent implements OnInit {
   }
 
   loadCart(response: CartResponseDto) {
-    // Thêm trạng thái selected cho shops và items
+    // Thêm trạng thái selected và note cho shops và items
     const shopsWithSelection: CartShopWithSelection[] = response.data.shops.map((shop) => ({
       ...shop,
       selected: true, // Mặc định chọn tất cả
+      note: '', // Mặc định note rỗng
       items: shop.items.map((item) => ({
         ...item,
         selected: true, // Mặc định chọn tất cả
@@ -218,6 +229,21 @@ export class CartComponent implements OnInit {
     );
   }
 
+  // Cập nhật note cho shop
+  updateShopNote(shopId: number, note: string) {
+    this.shops.update((shops) =>
+      shops.map((shop) => {
+        if (shop.shopId === shopId) {
+          return {
+            ...shop,
+            note: note,
+          };
+        }
+        return shop;
+      })
+    );
+  }
+
   // Kiểm tra shop có được chọn một phần không (indeterminate)
   isShopIndeterminate(shop: CartShopWithSelection): boolean {
     const selectedCount = shop.items.filter((item) => item.selected).length;
@@ -235,8 +261,7 @@ export class CartComponent implements OnInit {
         NewQuantity: newQuantity,
       });
       await this.fetchDataCart();
-      this.toast.success('Cập nhật số lượng thành công!', 'Thành công');
-      this.store.dispatch(addCart());
+      this.store.dispatch(loadCartSuccess({ cartItemCount: newQuantity }));
     } catch (error) {
       this.logger.error('Error updating quantity:', error);
       this.toast.error('Không thể cập nhật số lượng', 'Lỗi');
@@ -247,7 +272,6 @@ export class CartComponent implements OnInit {
     try {
       await this.cartService.deleteCartItem(productVariantId);
       await this.fetchDataCart();
-      this.toast.success('Xóa sản phẩm thành công!', 'Thành công');
       this.store.dispatch(previousCart());
     } catch (error) {
       this.logger.error('Error removing item:', error);
@@ -288,7 +312,7 @@ export class CartComponent implements OnInit {
       .filter((shop) => shop.selected && shop.items.some((item) => item.selected))
       .map((shop) => ({
         shopId: shop.shopId,
-        note: '', // Có thể thêm UI để user nhập note sau
+        note: shop.note || '', // Lấy note từ shop
       }));
   }
 
@@ -326,11 +350,11 @@ export class CartComponent implements OnInit {
 
     try {
       this.logger.info('Creating order with payload:', orderPayload);
-      const res = await this.orderService.create(orderPayload);
+      await this.orderService.create(orderPayload);
       this.toast.success('Đặt hàng thành công!', 'Thành công');
       this.store.dispatch(resetCart());
       // Navigate to order success page hoặc order detail
-      // this.router.navigate(['/orders', res.orderId]);
+      this.router.navigate(['/order-customer']);
     } catch (error) {
       this.logger.error('Error creating order:', error);
       this.toast.error('Không thể tạo đơn hàng. Vui lòng thử lại!', 'Lỗi');

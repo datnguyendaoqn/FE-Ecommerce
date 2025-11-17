@@ -6,6 +6,7 @@ import {
   FormControl,
   Validators
 } from '@angular/forms';
+import { Router } from '@angular/router';
 import { SellerService } from 'src/services/seller/seller.service';
 import { sellerRegistrationRequestDto } from '@dtos/seller/seller.request.dto';
 
@@ -15,7 +16,7 @@ import { NGXLogger } from 'ngx-logger';
 @Component({
   selector: 'app-seller-registration',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule], // Cần ReactiveFormsModule
+  imports: [CommonModule, ReactiveFormsModule],
   templateUrl: './registration.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -24,8 +25,10 @@ export class SellerRegistrationComponent {
   constructor(
     private readonly sellerService: SellerService,
     private readonly toast: ToastrService,
-    private readonly logger: NGXLogger
+    private readonly logger: NGXLogger,
+    private readonly router: Router
   ) { }
+  
   // === State ===
   loading = signal(false);
   error = signal<string | null>(null);
@@ -52,9 +55,12 @@ export class SellerRegistrationComponent {
     try {
       await this.sellerService.register(dto);
       this.toast.success("Đăng ký seller thành công", 'Thành công');
+      
+      // Chuyển hướng đến trang seller/products
+      this.router.navigate(['/seller/products']);
     } catch (error) {
       this.error.set(String(error));
+      this.loading.set(false);
     }
-
   }
-} 
+}

@@ -20,7 +20,7 @@
       <mat-icon class="text-red-500 flex-shrink-0">error_outline</mat-icon>
       <div class="flex-1">
         <p class="text-red-700 font-medium">{{ errorMessage }}</p>
-        <button 
+        <button
           (click)="fetchProducts()"
           class="text-red-600 hover:text-red-700 text-sm font-medium mt-2 flex items-center gap-1"
         >
@@ -62,8 +62,14 @@
     </div>
 
     <!-- Loading State for Top 5 -->
-    <div *ngIf="loadingTop5" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
-      <div *ngFor="let i of [1,2,3,4,5]" class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse">
+    <div
+      *ngIf="loadingTop5"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6"
+    >
+      <div
+        *ngFor="let i of [1, 2, 3, 4, 5]"
+        class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse"
+      >
         <div class="bg-gray-200 h-48 sm:h-56"></div>
         <div class="p-4 space-y-3">
           <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -74,8 +80,10 @@
     </div>
 
     <!-- Top 5 Products Grid -->
-    <div *ngIf="!loadingTop5 && top5Products.length > 0" 
-         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6">
+    <div
+      *ngIf="!loadingTop5 && top5Products.length > 0"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 lg:gap-6"
+    >
       <app-product-card
         *ngFor="let p of top5Products; let i = index"
         [product]="p"
@@ -87,8 +95,10 @@
     </div>
 
     <!-- Empty State for Top 5 -->
-    <div *ngIf="!loadingTop5 && top5Products.length === 0" 
-         class="text-center py-12 bg-gray-50 rounded-2xl">
+    <div
+      *ngIf="!loadingTop5 && top5Products.length === 0"
+      class="text-center py-12 bg-gray-50 rounded-2xl"
+    >
       <mat-icon class="text-6xl text-gray-300 mb-4">shopping_bag</mat-icon>
       <p class="text-gray-500">Chưa có sản phẩm nổi bật</p>
     </div>
@@ -329,8 +339,14 @@
     </div>
 
     <!-- Loading State for Products -->
-    <div *ngIf="loading" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
-      <div *ngFor="let i of [1,2,3,4,5,6,7,8]" class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse">
+    <div
+      *ngIf="loading"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6"
+    >
+      <div
+        *ngFor="let i of [1, 2, 3, 4, 5, 6, 7, 8]"
+        class="bg-white rounded-2xl overflow-hidden shadow-md animate-pulse"
+      >
         <div class="bg-gray-200 h-48 sm:h-56"></div>
         <div class="p-4 space-y-3">
           <div class="h-4 bg-gray-200 rounded w-3/4"></div>
@@ -341,10 +357,12 @@
     </div>
 
     <!-- Products Grid -->
-    <div *ngIf="!loading && paginatedProducts.length > 0" 
-         class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6">
+    <div
+      *ngIf="!loading && products.length > 0"
+      class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-4 gap-4 lg:gap-6"
+    >
       <app-product-card
-        *ngFor="let p of paginatedProducts; let i = index"
+        *ngFor="let p of products; let i = index"
         [product]="p"
         [compact]="true"
         [attr.data-aos]="'fade-up'"
@@ -355,8 +373,10 @@
     </div>
 
     <!-- Empty State -->
-    <div *ngIf="!loading && paginatedProducts.length === 0" 
-         class="text-center py-20 bg-gray-50 rounded-2xl">
+    <div
+      *ngIf="!loading && products.length === 0"
+      class="text-center py-20 bg-gray-50 rounded-2xl"
+    >
       <mat-icon class="text-8xl text-gray-300 mb-6">inbox</mat-icon>
       <h3 class="text-xl font-semibold text-gray-700 mb-2">Không tìm thấy sản phẩm</h3>
       <p class="text-gray-500 mb-6">Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm từ khóa khác</p>
@@ -369,7 +389,10 @@
     </div>
 
     <!-- Pagination Section -->
-    <div *ngIf="!loading && paginatedProducts.length > 0" class="mt-12 flex flex-col items-center gap-4">
+    <div
+      *ngIf="!loading && products.length > 0"
+      class="mt-12 flex flex-col items-center gap-4"
+    >
       <div class="text-sm text-gray-600">
         Hiển thị <span class="font-semibold text-gray-900">{{ (page - 1) * pageSize + 1 }}</span> -
         <span class="font-semibold text-gray-900">{{

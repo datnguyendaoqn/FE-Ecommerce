@@ -1,5 +1,6 @@
 // DTO cho item con trong đơn hàng
 export interface CustomerOrderItemDto {
+  id:number;
   productName: string;
   variantName: string; // "Size L, Màu Đen"
   sku: string;

@@ -18,7 +18,7 @@ const skipAuthEndpoints = [
 
 const instance = axios.create({
   baseURL: enviroment.url,
-  timeout: 10000,
+  timeout: 30000,
   headers: { "Content-Type": "application/json" },
 });
 

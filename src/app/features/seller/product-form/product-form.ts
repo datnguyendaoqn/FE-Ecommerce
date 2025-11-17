@@ -16,7 +16,6 @@ import { UpdateProductRequestDto } from '@dtos/product/update-product.request.dt
 import { NgxCurrencyDirective, NgxCurrencyInputMode } from "ngx-currency";
 
 
-// Định nghĩa DTOs cục bộ (Không tạo file mới)
 interface UpdateProductVariantRequestDto {
   sku: string;
   variantSize: string | null;
@@ -35,7 +34,7 @@ interface UpdateProductVariantRequestDto {
     RouterModule,
     MatIcon,
     ReactiveFormsModule,
-    MatDialogModule, // Cần cho Dialog
+    MatDialogModule,
     NgxCurrencyDirective,
   ],
   templateUrl: './product-form.html',
@@ -64,7 +63,9 @@ export class SellerProductFormComponent implements OnInit {
     "Xanh mint", "Ghi", "Xanh than"
   ];
   
+  // QUAN TRỌNG: Quản lý files riêng biệt, KHÔNG dùng FormControl
   productImageFiles = signal<File[]>([]);
+  variantImageFiles = signal<Map<number, File>>(new Map()); // index -> File
   allowedImageTypes = ['image/png', 'image/jpeg', 'image/jpg'];
 
   constructor(
@@ -148,7 +149,7 @@ export class SellerProductFormComponent implements OnInit {
       description: [product?.description || ''],
       brand: [product?.brand || ''],
       categoryId: [product?.categoryId || null, [Validators.required]],
-      productImages: [null, this.isEditMode() ? null : Validators.required], 
+      // LOẠI BỎ FormControl cho productImages
       variants: this.fb.array(variantGroups) 
     });
 
@@ -179,8 +180,9 @@ export class SellerProductFormComponent implements OnInit {
       material: [variant?.material || null, [Validators.required]],
       price: [variant?.price || 1000, [Validators.required, Validators.min(1000)]],
       quantity: [variant?.quantity || 0, [Validators.required, Validators.min(0)]],
-      image: [null, variant?.id ? null : Validators.required],
-      primaryImage: [variant?.primaryImage || null] 
+      // LOẠI BỎ FormControl cho image
+      primaryImage: [variant?.primaryImage || null],
+      hasImageFile: [false] // Flag để track xem có file mới không
     });
   }
 
@@ -193,10 +195,9 @@ export class SellerProductFormComponent implements OnInit {
   }
 
   async removeVariant(index: number) {
-    // ========== THAY ĐỔI: (Req 2) Thêm logic check length <= 1 ==========
     if (this.variantsArray.length <= 1) {
       this.toastr.warning('Sản phẩm phải có ít nhất 1 phân loại hàng.', 'Không thể xóa');
-      return; // Dừng, không cho xóa
+      return;
     }
     
     const variantGroup = this.variantsArray.at(index);
@@ -217,6 +218,11 @@ export class SellerProductFormComponent implements OnInit {
           try {
             await this.sellerProductService.deleteVariant(this.productId()!, variantId);
             this.variantsArray.removeAt(index);
+            // Xóa file đã lưu nếu có
+            this.variantImageFiles.update(map => {
+              map.delete(index);
+              return new Map(map);
+            });
             this.toastr.success('Xóa biến thể thành công.');
           } catch (error) {
             this.toastr.error(String(error), 'Lỗi xóa biến thể');
@@ -225,10 +231,12 @@ export class SellerProductFormComponent implements OnInit {
           }
         }
       });
-    } 
-    else {
-      // (Check length <= 1 đã chạy ở đầu hàm)
+    } else {
       this.variantsArray.removeAt(index);
+      this.variantImageFiles.update(map => {
+        map.delete(index);
+        return new Map(map);
+      });
     }
   }
 
@@ -249,9 +257,7 @@ export class SellerProductFormComponent implements OnInit {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const validFiles = this.validateFiles(input.files);
-      this.productImageFiles.set(validFiles); 
-      this.productForm.patchValue({ productImages: validFiles.length > 0 ? validFiles : null });
-      this.productForm.get('productImages')?.updateValueAndValidity();
+      this.productImageFiles.set(validFiles);
       if (validFiles.length === 0) input.value = ''; 
     }
   }
@@ -262,15 +268,31 @@ export class SellerProductFormComponent implements OnInit {
       const validFiles = this.validateFiles(input.files);
       const variantGroup = this.variantsArray.at(variantIndex) as FormGroup;
       if (validFiles.length > 0) {
-        const file = validFiles[0]; 
-        variantGroup.patchValue({ image: file });
-        variantGroup.get('image')?.updateValueAndValidity();
+        const file = validFiles[0];
+        // Lưu file vào Map
+        this.variantImageFiles.update(map => {
+          map.set(variantIndex, file);
+          return new Map(map);
+        });
+        // Set flag
+        variantGroup.patchValue({ hasImageFile: true });
       } else {
-        variantGroup.patchValue({ image: null }); 
-        variantGroup.get('image')?.updateValueAndValidity();
+        this.variantImageFiles.update(map => {
+          map.delete(variantIndex);
+          return new Map(map);
+        });
+        variantGroup.patchValue({ hasImageFile: false });
         input.value = ''; 
       }
     }
+  }
+
+  // Hàm kiểm tra variant có ảnh chưa (cho validation)
+  variantHasImage(index: number): boolean {
+    const variantGroup = this.variantsArray.at(index) as FormGroup;
+    const hasExistingImage = !!variantGroup.get('primaryImage')?.value;
+    const hasNewFile = this.variantImageFiles().has(index);
+    return hasExistingImage || hasNewFile;
   }
 
   async onSubmit() {
@@ -298,11 +320,27 @@ export class SellerProductFormComponent implements OnInit {
         await this.sellerProductService.updateProduct(this.productId()!, dto);
         this.toastr.success('Cập nhật thông tin cơ bản thành công!');
       } else {
+        // Validate form và files
         if (this.productForm.invalid) {
           this.toastr.error('Vui lòng điền đầy đủ các trường bắt buộc (*).');
           this.productForm.markAllAsTouched();
           this.isLoading.set(false);
           return;
+        }
+
+        if (this.productImageFiles().length === 0) {
+          this.toastr.error('Vui lòng chọn ít nhất 1 ảnh sản phẩm.');
+          this.isLoading.set(false);
+          return;
+        }
+
+        // Validate variant images
+        for (let i = 0; i < this.variantsArray.length; i++) {
+          if (!this.variantHasImage(i)) {
+            this.toastr.error(`Phân loại hàng ${i + 1} chưa có ảnh.`);
+            this.isLoading.set(false);
+            return;
+          }
         }
 
         const formData = this.buildCreateFormData(this.productForm.value);
@@ -321,8 +359,8 @@ export class SellerProductFormComponent implements OnInit {
   async onSaveVariant(index: number) {
     const variantGroup = this.variantsArray.at(index) as FormGroup;
     
-    // (Kiểm tra 'image' chỉ khi là variant mới)
-    if (variantGroup.value.id === null && variantGroup.get('image')?.invalid) {
+    // Kiểm tra ảnh cho variant mới
+    if (variantGroup.value.id === null && !this.variantHasImage(index)) {
       this.toastr.error('Vui lòng thêm ảnh cho biến thể mới.');
       variantGroup.markAllAsTouched();
       return;
@@ -339,7 +377,7 @@ export class SellerProductFormComponent implements OnInit {
     
     try {
       if (variantId) {
-        // --- CẬP NHẬT VARIANT ĐÃ CÓ (PUT) ---
+        // CẬP NHẬT VARIANT ĐÃ CÓ
         const dto: UpdateProductVariantRequestDto = {
           sku: variantGroup.value.sku,
           variantSize: variantGroup.value.variantSize,
@@ -353,18 +391,21 @@ export class SellerProductFormComponent implements OnInit {
         variantGroup.markAsPristine(); 
         
       } else {
-        // --- THÊM VARIANT MỚI (VÀO SẢN PHẨM ĐÃ CÓ) (POST) ---
-        const formData = this.buildVariantFormData(variantGroup.value);
+        // THÊM VARIANT MỚI
+        const formData = this.buildVariantFormData(index);
         const newVariant = await this.sellerProductService.addVariant(this.productId()!, formData);
         
         variantGroup.patchValue({
           id: newVariant.id,
           primaryImage: newVariant.primaryImage,
-          image: null // Xóa file đi sau khi upload
+          hasImageFile: false
         });
-        // Set image validator thành không bắt buộc nữa
-        variantGroup.get('image')?.clearValidators();
-        variantGroup.get('image')?.updateValueAndValidity();
+        
+        // Xóa file đã upload
+        this.variantImageFiles.update(map => {
+          map.delete(index);
+          return new Map(map);
+        });
         
         variantGroup.markAsPristine(); 
         this.toastr.success(`Đã thêm biến thể mới (SKU: ${newVariant.sku})`);
@@ -383,12 +424,10 @@ export class SellerProductFormComponent implements OnInit {
     formData.append('brand', formValue.brand || '');
     formData.append('categoryId', formValue.categoryId.toString());
     
-    const productImages = formValue.productImages as File[];
-    if (productImages) {
-      productImages.forEach((file) => {
-        formData.append(`ProductImages`, file, file.name);
-      });
-    }
+    // Thêm product images từ signal
+    this.productImageFiles().forEach((file) => {
+      formData.append(`ProductImages`, file, file.name);
+    });
     
     formValue.variants.forEach((variant: any, index: number) => {
       formData.append(`Variants[${index}].SKU`, variant.sku);
@@ -397,14 +436,18 @@ export class SellerProductFormComponent implements OnInit {
       formData.append(`Variants[${index}].Material`, variant.material || ''); 
       formData.append(`Variants[${index}].Price`, variant.price.toString()); 
       formData.append(`Variants[${index}].Quantity`, variant.quantity.toString());
-      if (variant.image instanceof File) {
-        formData.append(`Variants[${index}].Image`, variant.image, variant.image.name);
+      
+      // Lấy file từ Map
+      const file = this.variantImageFiles().get(index);
+      if (file) {
+        formData.append(`Variants[${index}].Image`, file, file.name);
       }
     });
     return formData;
   }
 
-  private buildVariantFormData(variantValue: any): FormData {
+  private buildVariantFormData(variantIndex: number): FormData {
+    const variantValue = this.variantsArray.at(variantIndex).value;
     const formData = new FormData();
     formData.append('SKU', variantValue.sku);
     formData.append('VariantSize', variantValue.variantSize || '');
@@ -412,8 +455,10 @@ export class SellerProductFormComponent implements OnInit {
     formData.append('Material', variantValue.material || '');
     formData.append('Price', variantValue.price.toString());
     formData.append('Quantity', variantValue.quantity.toString());
-    if (variantValue.image instanceof File) {
-      formData.append('Image', variantValue.image, variantValue.image.name);
+    
+    const file = this.variantImageFiles().get(variantIndex);
+    if (file) {
+      formData.append('Image', file, file.name);
     }
     return formData;
   }
@@ -453,7 +498,6 @@ export class SellerProductFormComponent implements OnInit {
     } finally {
       this.isLoading.set(false);
       input.value = ''; 
-
     }
   }
 
@@ -473,7 +517,6 @@ export class SellerProductFormComponent implements OnInit {
         try {
           await this.sellerProductService.deleteMedia(mediaId);
           this.productGallery.update(currentGallery => 
-
             currentGallery.filter(img => img.id !== mediaId)
           );
           this.toastr.success('Đã xóa ảnh.');
@@ -509,12 +552,10 @@ export class SellerProductFormComponent implements OnInit {
         this.isLoading.set(true);
         try {
           await this.sellerProductService.deleteMedia(mediaObj.id);
+          // Chỉ cần set primaryImage = null
           variantGroup.patchValue({
-            primaryImage: null, 
-            image: null 
+            primaryImage: null
           });
-          variantGroup.get('image')?.setValidators([Validators.required]);
-          variantGroup.get('image')?.updateValueAndValidity();
           
           this.toastr.success('Đã xóa ảnh của biến thể. Bạn có thể tải lên ảnh mới.');
         } catch (error) {

@@ -1,19 +1,18 @@
 <div class="max-w-7xl mx-auto px-4 py-8 lg:py-12 mt-10" *ngIf="!isLoading; else loading">
   <!-- Breadcrumb -->
   <nav class="text-sm text-gray-500 mb-6">
-    <a href="/" class="hover:text-primary-600 transition">Trang chủ</a>
+    <a href="/" class="hover:text-primary-600">Trang chủ</a>
     <span class="mx-2">/</span>
-    <a href="/collections" class="hover:text-primary-600 transition">Sản phẩm</a>
+    <a href="/collections" class="hover:text-primary-600">Sản phẩm</a>
     <span class="mx-2">/</span>
     <span class="text-gray-800 font-medium">{{ product.name }}</span>
   </nav>
 
-  <!-- Main Product Section -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 mb-16">
-    <!-- Image Gallery -->
-    <div class="space-y-4">
-      <!-- Main Image -->
-      <div class="relative group overflow-hidden rounded-2xl bg-gray-100 aspect-square">
+  <!-- Main -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-16">
+    <!-- Image -->
+    <div>
+      <div class="relative overflow-hidden rounded-2xl bg-gray-100 aspect-square group">
         <img
           [src]="primaryImageUrl"
           [alt]="product.name"
@@ -22,13 +21,15 @@
       </div>
     </div>
 
-    <!-- Product Info -->
+    <!-- Info -->
     <div class="flex flex-col">
       <div class="flex items-center gap-2 mb-3">
-        <span class="text-sm font-semibold text-primary-600 uppercase tracking-wide">
+        <span class="text-sm font-semibold text-primary-600 uppercase">
           {{ product.brand || 'Không xác định' }}
         </span>
+
         <span class="w-1 h-1 bg-gray-300 rounded-full"></span>
+
         <div class="flex items-center gap-1">
           <mat-icon class="text-yellow-500 !text-base">star</mat-icon>
           <span class="text-sm font-medium">{{ averageRating }}</span>
@@ -36,12 +37,13 @@
         </div>
       </div>
 
-      <h1 class="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-        {{ product.name }}
-      </h1>
+      <h1 class="text-4xl font-bold text-gray-900 mb-4">{{ product.name }}</h1>
 
-      <p class="text-gray-600 leading-relaxed mb-6">{{ product.description }}</p>
+      <p class="text-gray-600 mb-6 leading-relaxed">
+        {{ product.description }}
+      </p>
 
+      <!-- Price -->
       <div class="flex items-baseline gap-3 mb-8">
         <span class="text-4xl font-bold text-red-600">
           {{ selectedVariant.price | number : '1.0-0' }}đ
@@ -51,157 +53,140 @@
         </span>
       </div>
 
-      <!-- Variant Selection -->
-      <div class="mb-8" *ngIf="product.variants && product.variants.length > 0">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="w-1 h-6 bg-primary-600 rounded-full"></div>
-            <h3 class="font-semibold text-gray-900 text-lg">Chọn màu sắc & kích thước</h3>
-          </div>
+      <!-- Variant -->
+      <div class="mb-8" *ngIf="product?.variants && product.variants.length > 0">
+        <div class="flex items-center gap-3 mb-4">
+          <div class="w-1.5 h-6 bg-primary-600 rounded-full"></div>
+          <h3 class="font-semibold text-gray-900 text-lg">Chọn màu sắc & kích thước</h3>
         </div>
+
         <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
           <button
-            *ngFor="let v of product.variants"
+            *ngFor="let v of product?.variants"
             (click)="onSelectVariant(v)"
             [disabled]="!v.isInStock"
             [ngClass]="{
-              'bg-primary-600 text-white border-primary-600 shadow-lg shadow-primary-600/30':
+              'bg-primary-600 text-white border-primary-600 shadow-md shadow-primary-600/30':
                 selectedVariant.id === v.id,
-              'bg-white text-gray-700 border-gray-200 hover:border-primary-300 hover:shadow-md':
+              'bg-white text-gray-700 border-gray-200 hover:border-primary-300':
                 selectedVariant.id !== v.id && v.isInStock,
-
-              'bg-gray-100 text-gray-400 border-gray-300 cursor-not-allowed opacity-50':
+              'bg-gray-100 text-gray-400 border-gray-300 opacity-50 cursor-not-allowed':
                 !v.isInStock
             }"
-            class="relative px-4 py-3 rounded-xl border-2 font-medium transition-all duration-200"
+            class="relative px-4 py-3 rounded-xl border-2 font-medium transition-all"
           >
             <div class="text-sm">{{ v.color || 'Mặc định' }}</div>
-            <div class="text-xs opacity-80">Size {{ v.variantSize || 'N/A' }}</div>
+            <div class="text-xs opacity-80">Size {{ v.variantSize }}</div>
+
             <div
-              *ngIf="selectedVariant.id === v.id"
-              class="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center"
+              *ngIf="selectedVariant?.id === v.id"
+              class="absolute -top-1 -right-1 w-5 h-5 bg-white rounded-full flex items-center justify-center shadow"
             >
-              <mat-icon class="text-primary-600 !text-xs !w-3 !h-3">check</mat-icon>
+              <mat-icon class="text-primary-600 !text-xs">check</mat-icon>
             </div>
           </button>
         </div>
       </div>
 
-      <!-- Action Buttons -->
-      <div class="flex gap-3 mb-6">
+      <!-- Buttons -->
+      <div class="flex gap-3">
         <button
           (click)="addToCart()"
           [disabled]="!selectedVariant.isInStock"
-          [ngClass]="{
-            'opacity-50 cursor-not-allowed': !selectedVariant.isInStock
-          }"
-          class="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl font-semibold shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:hover:translate-y-0"
+          class="flex-1 bg-gradient-to-r from-primary-600 to-primary-700 text-white py-4 rounded-xl font-semibold shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
         >
-          <mat-icon class="!text-xl">shopping_cart</mat-icon>
+          <mat-icon>shopping_cart</mat-icon>
           {{ selectedVariant.isInStock ? 'Thêm vào giỏ hàng' : 'Hết hàng' }}
         </button>
+
         <button
           (click)="onAddToFavorite(product)"
-          class="bg-white border-2 border-gray-200 text-gray-700 py-4 px-6 rounded-xl font-semibold hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center"
+          class="bg-white border-2 border-gray-200 py-4 px-6 rounded-xl hover:border-red-300 hover:text-red-500 hover:bg-red-50 transition-all"
         >
-          <mat-icon class="!w-6 !h-6 !text-2xl">favorite_border</mat-icon>
+          <mat-icon>favorite_border</mat-icon>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Product Description Section -->
+  <!-- DESCRIPTION -->
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-16">
     <div class="border-b border-gray-100 px-8 pt-8">
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-1 h-7 bg-primary-600 rounded-full"></div>
+        <div class="w-1.5 h-7 bg-primary-600 rounded-full"></div>
         <h2 class="text-2xl font-bold text-gray-900">Mô tả chi tiết</h2>
       </div>
     </div>
 
     <div class="p-8">
-      <!-- Description text -->
-      <div
-        [ngClass]="{ 'max-h-[500px] overflow-hidden': !isDescriptionExpanded }"
-        class="relative transition-all duration-300"
-      >
-        <div class="prose max-w-none">
-          <p class="text-gray-700 mb-6">{{ product.description }}</p>
-
-          <!-- Gallery inside description -->
-          <div class="relative mt-6" *ngIf="galleryImageUrls && galleryImageUrls.length > 0">
-            <div class="flex gap-4 overflow-x-auto pb-4 snap-x snap-mandatory scrollbar-thin">
-              <div
-                *ngFor="let img of galleryImageUrls"
-                class="relative flex-shrink-0 w-80 rounded-xl overflow-hidden group snap-start shadow-md"
-              >
-                <img
-                  [src]="img"
-                  class="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-              </div>
+      <div [ngClass]="{ 'max-h-[500px] overflow-hidden': !isDescriptionExpanded }" class="relative">
+        <div class="mt-6" *ngIf="galleryImageUrls && galleryImageUrls.length > 0">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div
+              *ngFor="let img of galleryImageUrls"
+              class="rounded-xl overflow-hidden shadow group"
+            >
+              <img
+                [src]="img"
+                class="w-full h-60 object-cover transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
-
-            <!-- Gradient overlays for scroll indication -->
-            <div
-              class="absolute top-0 left-0 bottom-4 w-16 bg-gradient-to-r from-white to-transparent pointer-events-none"
-            ></div>
-            <div
-              class="absolute top-0 right-0 bottom-4 w-16 bg-gradient-to-l from-white to-transparent pointer-events-none"
-            ></div>
           </div>
         </div>
 
-        <!-- Overlay khi chưa expand -->
         <div
           *ngIf="!isDescriptionExpanded"
           class="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-white to-transparent"
         ></div>
       </div>
 
-      <!-- Toggle button -->
       <div class="flex justify-center mt-6">
         <button
           (click)="toggleDescription()"
-          class="px-6 py-2.5 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium transition-all flex items-center gap-2"
+          class="px-6 py-2.5 rounded-full bg-gray-100 hover:bg-gray-200 transition flex items-center gap-2"
         >
           <span>{{ isDescriptionExpanded ? 'Thu gọn' : 'Xem thêm' }}</span>
-          <mat-icon
-            [ngClass]="{ 'rotate-180': isDescriptionExpanded }"
-            class="!w-4 !h-4 !text-base transition-transform"
+          <mat-icon [ngClass]="{ 'rotate-180': isDescriptionExpanded }" class="transition-transform"
+            >keyboard_arrow_down</mat-icon
           >
-            keyboard_arrow_down
-          </mat-icon>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Reviews -->
+  <!-- REVIEWS -->
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 mb-16">
-    <h2 class="text-2xl font-bold mb-6 text-gray-900">Đánh giá sản phẩm</h2>
-    <div *ngIf="reviews?.length; else noReviews" class="space-y-6">
-      <div *ngFor="let r of reviews" class="border-b border-gray-100 pb-6 last:border-0">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-1.5 h-7 bg-primary-600 rounded-full"></div>
+      <h2 class="text-2xl font-bold text-gray-900">Đánh giá sản phẩm</h2>
+    </div>
+
+    <div *ngIf="reviews && reviews.length > 0; else noReviews" class="space-y-6">
+      <div *ngFor="let r of reviews" class="border-b last:border-0 border-gray-100 pb-6">
         <div class="flex items-start gap-4">
           <div
-            class="w-12 h-12 rounded-full bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-lg flex-shrink-0"
+            class="w-12 h-12 rounded-full bg-primary-600 text-white flex items-center justify-center font-bold"
           >
             {{ r.authorName.charAt(0).toUpperCase() }}
           </div>
+
           <div class="flex-1">
-            <h4 class="font-semibold text-gray-900">{{ r.authorName }}</h4>
+            <h4 class="font-semibold">{{ r.authorName }}</h4>
+
             <div class="flex items-center gap-2 mt-1">
               <div class="flex">
                 <mat-icon
                   *ngFor="let star of [1, 2, 3, 4, 5]"
                   [ngClass]="star <= r.rating ? 'text-yellow-500' : 'text-gray-300'"
-                  class="!text-sm !w-4 !h-4"
+                  class="!text-sm"
+                  >star</mat-icon
                 >
-                  star
-                </mat-icon>
               </div>
-              <span class="text-sm text-gray-500">{{ r.createdAt | date : 'dd/MM/yyyy' }}</span>
+              <span class="text-sm text-gray-500">
+                {{ r.createdAt | date : 'dd/MM/yyyy' }}
+              </span>
             </div>
+
             <p class="text-gray-700 mt-2">{{ r.comment }}</p>
             <p class="text-sm text-gray-500 mt-1" *ngIf="r.variantInfo">{{ r.variantInfo }}</p>
           </div>
@@ -211,29 +196,31 @@
 
     <ng-template #noReviews>
       <div class="text-center py-12">
-        <mat-icon class="text-gray-300 !w-16 !h-16 !text-6xl mx-auto mb-4">comment</mat-icon>
+        <mat-icon class="text-gray-300 !text-6xl mb-4">comment</mat-icon>
         <p class="text-gray-500 text-lg">Chưa có đánh giá nào cho sản phẩm này</p>
-        <p class="text-gray-400 text-sm mt-1">Hãy là người đầu tiên đánh giá sản phẩm!</p>
+        <p class="text-gray-400 text-sm">Hãy là người đầu tiên đánh giá!</p>
       </div>
     </ng-template>
-  </div>
+    <!-- RELATED PRODUCTS -->
+    <section class="mb-16" *ngIf="relatedProducts && relatedProducts.length > 0">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-1.5 h-7 bg-primary-600 rounded-full"></div>
+        <h2 class="text-2xl font-bold">Sản phẩm tương tự</h2>
+      </div>
 
-  <!-- Related Products -->
-  <section class="mb-16" *ngIf="relatedProducts && relatedProducts.length > 0">
-    <h2 class="text-2xl font-bold mb-6 text-gray-900">Sản phẩm tương tự</h2>
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-      <app-product-card
-        *ngFor="let p of relatedProducts"
-        [product]="p"
-        [compact]="true"
-        (addToFavorite)="onAddToFavorite(p)"
-      ></app-product-card>
-    </div>
-  </section>
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+        <app-product-card
+          *ngFor="let p of relatedProducts"
+          [product]="p"
+          [compact]="true"
+          (addToFavorite)="onAddToFavorite(p)"
+        >
+        </app-product-card>
+      </div>
+    </section>
+  </div>
 </div>
 
 <ng-template #loading>
-  <div class="py-20 text-center text-gray-500 text-lg animate-pulse">
-    Đang tải dữ liệu sản phẩm...
-  </div>
+  <div class="py-20 text-center animate-pulse text-gray-500">Đang tải dữ liệu sản phẩm...</div>
 </ng-template>

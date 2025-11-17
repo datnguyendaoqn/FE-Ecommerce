@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ReviewRequestDto } from '@dtos/review/review.request.dto';
 import { ToastrService } from 'ngx-toastr';
+import { ReviewService } from 'src/services/review/review.service';
 
 export interface ReviewDialogData {
   orderItemId: number;
@@ -26,18 +27,19 @@ export interface ReviewDialogData {
   templateUrl: './review-dialog.html',
 })
 export class ReviewDialogComponent {
-  
+
   reviewForm: FormGroup;
   currentRating = signal(0);
   hoverRating = signal(0);
- 
+
   stars = [1, 2, 3, 4, 5];
 
   constructor(
     private fb: FormBuilder,
     private toastr: ToastrService,
     public dialogRef: MatDialogRef<ReviewDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ReviewDialogData
+    @Inject(MAT_DIALOG_DATA) public data: ReviewDialogData,
+    private readonly reviewService: ReviewService
   ) {
     this.reviewForm = this.fb.group({
       rating: [0, [Validators.required, Validators.min(1)]],
@@ -77,11 +79,7 @@ export class ReviewDialogComponent {
     };
 
     try {
-
-      console.log('ĐANG GIẢ LẬP GỬI ĐÁNH GIÁ:', request);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      this.toastr.success('Cảm ơn bạn đã đánh giá sản phẩm!', 'Thành công');
+      await this.reviewService.create(request)
       this.dialogRef.close(true);
     } catch (error) {
       this.toastr.error(String(error), 'Lỗi');

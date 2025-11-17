@@ -1,7 +1,6 @@
-
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterModule } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ProductSummaryDto } from '@dtos/product/product';
 import { ProductDetailDto, ProductVariantDetailDto } from '@dtos/product/product-detail';
 import { ProductCardComponent } from '@shared/component/ui/product/product';
@@ -44,38 +43,38 @@ export class ProductDetailComponent implements OnInit {
     private toast: ToastrService,
     private store: Store,
     private dialog: MatDialog,
-    private helperService: HelperService
+    private helperService: HelperService,
+    private readonly router: Router
   ) { }
 
-  async ngOnInit(): Promise<void> {
-    this.isLoading = true;
+  ngOnInit(): void {
+    this.route.paramMap.subscribe(async params => {
+      const productId = Number(params.get('id'));
 
-    try {
-      const productId = Number(this.route.snapshot.paramMap.get('id'));
+      this.isLoading = true;
 
-      if (!productId || isNaN(productId)) {
+      try {
+        if (!productId || isNaN(productId)) {
+          this.loadMockData();
+        } else {
+          const response = await this.productService.getById<ProductDetailDto>(productId);
+
+          try {
+            this.relatedProducts = await this.productService.getRelatedProduct(productId);
+          } catch {
+            this.relatedProducts = [];
+          }
+
+          this.product = response && response.id ? response : productDetailMocks.data;
+        }
+      } catch {
         this.loadMockData();
-        return;
       }
 
-      // Gọi API lấy chi tiết sản phẩm
-      const response = await this.productService.getById<ProductDetailDto>(productId);
-
-      if (response && response.id) {
-        this.product = response;
-      } else {
-        throw new Error('Response không có data hợp lệ');
-      }
-    } catch (error) {
-      this.loadMockData();
-    }
-
-    if (!this.product) {
-      this.loadMockData();
-    }
-
-    this.initializeProductData();
+      this.initializeProductData();
+    });
   }
+
 
 
   private loadMockData(): void {
@@ -92,20 +91,21 @@ export class ProductDetailComponent implements OnInit {
     // Chọn biến thể đầu tiên (có thể filter chỉ lấy variant còn hàng)
     this.selectedVariant = this.product.variants.find(v => v.isInStock) || this.product.variants[0];
 
-    // Sản phẩm liên quan (mock)
-    this.relatedProducts = productsMock;
+    // === Giữ relatedProducts từ API, chỉ fallback nếu rỗng hoặc API lỗi ===
+    if (!this.relatedProducts || this.relatedProducts.length === 0) {
+      this.relatedProducts = productsMock;
+    }
 
     // Lấy review
     try {
       const apiReviews = await this.productService.getReviewProduct(this.product.id);
-      this.reviews =
-        apiReviews && Array.isArray(apiReviews) && apiReviews.length > 0
-          ? apiReviews
-          : reviewMocks;
-    } catch (error) {
-      this.reviews = reviewMocks;
-    }
 
+      this.reviews = apiReviews?.data ?? [];
+
+    } catch {
+      // API lỗi => coi như không có review
+      this.reviews = [];
+    }
     // Tính rating trung bình
     this.reviewCount = this.reviews.length;
     this.averageRating =
@@ -134,8 +134,29 @@ export class ProductDetailComponent implements OnInit {
   }
 
   get galleryImageUrls(): string[] {
-    if (!this.product || !this.product.productImages) return [];
-    return this.product.productImages.map(img => img.imageUrl);
+    if (!this.product) return [];
+
+    const imageSet = new Set<string>();
+
+    // // 1. Thêm ảnh từ productImages
+    // if (this.product.productImages && this.product.productImages.length > 0) {
+    //   this.product.productImages.forEach(img => {
+    //     if (img.imageUrl) {
+    //       imageSet.add(img.imageUrl);
+    //     }
+    //   });
+    // }
+
+    // 2. Thêm ảnh từ primaryImage của các variants
+    if (this.product.variants && this.product.variants.length > 0) {
+      this.product.variants.forEach(variant => {
+        if (variant.primaryImage?.imageUrl) {
+          imageSet.add(variant.primaryImage.imageUrl);
+        }
+      });
+    }
+
+    return Array.from(imageSet);
   }
 
   get originalPrice(): number {
@@ -183,6 +204,8 @@ export class ProductDetailComponent implements OnInit {
 
     try {
       await this.cartService.createCartItem(item);
+      // Chuyển sang /cart sau khi API thêm xong
+      this.router.navigate(['/cart']);
       this.toast.success("Đã thêm vào giỏ hàng", "Thành công");
       this.store.dispatch(addCart());
     } catch (error) {

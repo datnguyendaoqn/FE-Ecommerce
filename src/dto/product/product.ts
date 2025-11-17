@@ -1,4 +1,4 @@
-import { ApiPaginationResponseDto } from "@dtos/api/api.response.dto";
+import { ApiPaginationResponseDto, ApiResponseDto } from "@dtos/api/api.response.dto";
 
 export interface ProductSummaryDto {
     id: number,
@@ -12,3 +12,9 @@ export interface ProductSummaryDto {
 
 
 export interface ProductPaginationDto extends ApiPaginationResponseDto<ProductSummaryDto> { }
+
+export interface ProductRelatedPaginationDto extends ApiResponseDto {
+    data: {
+        sameShopProducts: ProductSummaryDto[]
+    }
+}
