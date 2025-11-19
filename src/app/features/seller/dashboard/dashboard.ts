@@ -42,6 +42,8 @@ export class DashboardComponent implements OnInit {
   public summary?: DashboardSummaryResponse;
   public topProducts: TopProductResponse[] = [];
   public recentOrders: RecentOrderResponse[] = [];
+  public salesOverTime: SalesOverTimeResponse[] = [];
+  public categorySales: CategorySalesResponse[] = [];
 
   // Loading
   public isLoadingSummary = false;
@@ -82,7 +84,29 @@ export class DashboardComponent implements OnInit {
       },
     ],
   };
+  private updateBarChart(data: SalesOverTimeResponse[]): void {
+    this.barChartData = {
+      labels: data.map(d => d.date),
+      datasets: [
+        { data: data.map(d => d.revenue), label: 'Doanh thu', backgroundColor: '#3b82f6' },
+        { data: data.map(d => d.orderCount), label: 'Đơn hàng', backgroundColor: '#a855f7' },
+      ],
+    };
+  }
 
+  private updatePieChart(data: CategorySalesResponse[]): void {
+    this.pieChartData = {
+      labels: data.map(d => d.categoryName),
+      datasets: [
+        {
+          data: data.map(d => d.totalRevenue),
+          label: 'Doanh thu',
+          backgroundColor: this.pieChartData.datasets[0].backgroundColor,
+          hoverBackgroundColor: this.pieChartData.datasets[0].hoverBackgroundColor,
+        },
+      ],
+    };
+  }
   constructor() {
     const today = new Date();
     const thirtyDaysAgo = new Date();
@@ -91,7 +115,6 @@ export class DashboardComponent implements OnInit {
     this.toDate = this.formatDateForInput(today);
     this.fromDate = this.formatDateForInput(thirtyDaysAgo);
   }
-
   ngOnInit(): void {
     this.loadAllDashboardData();
   }
@@ -121,10 +144,8 @@ export class DashboardComponent implements OnInit {
   async loadSummary(from: string, to: string): Promise<void> {
     this.isLoadingSummary = true;
     try {
-      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getDashboardSummary({ from, to });
-      // SỬA LỖI 17: Gán 'data' (là DashboardSummary) cho 'this.summary'
-      this.summary = data; 
+      this.summary = data;
     } catch (err) {
       this.handleError(err, 'tổng quan');
     } finally {
@@ -137,7 +158,6 @@ export class DashboardComponent implements OnInit {
     try {
       // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getSalesOverTime({ from, to });
-      // SỬA LỖI 18: Gán 'data' (là SalesOverTime[]) cho 'this.updateBarChart'
       this.updateBarChart(data);
     } catch (err) {
       this.handleError(err, 'doanh thu theo thời gian');
@@ -151,7 +171,6 @@ export class DashboardComponent implements OnInit {
     try {
       // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getTopProducts({ from, to, topN });
-      // SỬA LỖI 19: Gán 'data' (là TopProduct[]) cho 'this.topProducts'
       this.topProducts = data;
     } catch (err) {
       this.handleError(err, 'sản phẩm bán chạy');
@@ -165,7 +184,6 @@ export class DashboardComponent implements OnInit {
     try {
       // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getCategorySales({ from, to });
-      // SỬA LỖI 20: Gán 'data' (là CategorySales[]) cho 'this.updatePieChart'
       this.updatePieChart(data);
     } catch (err) {
       this.handleError(err, 'doanh thu theo danh mục');
@@ -179,7 +197,6 @@ export class DashboardComponent implements OnInit {
     try {
       // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getRecentOrders({ count });
-      // SỬA LỖI 21: Gán 'data' (là RecentOrder[]) cho 'this.recentOrders'
       this.recentOrders = data;
     } catch (err) {
       this.handleError(err, 'đơn hàng gần đây');
@@ -187,28 +204,7 @@ export class DashboardComponent implements OnInit {
       this.isLoadingRecentOrders = false;
     }
   }
-  private updateBarChart(data: SalesOverTimeResponse[]): void {
-    this.barChartData = {
-      labels: data.map(d => d.date),
-      datasets: [
-        { data: data.map(d => d.revenue), label: 'Doanh thu', backgroundColor: '#3b82f6' },
-        { data: data.map(d => d.orderCount), label: 'Đơn hàng', backgroundColor: '#a855f7' },
-      ],
-    };
-  }
 
-  private updatePieChart(data: CategorySalesResponse[]): void {
-    this.pieChartData = {
-      labels: data.map(d => d.categoryName),
-      datasets: [
-        {
-          data: data.map(d => d.totalRevenue),
-          backgroundColor: this.pieChartData.datasets[0].backgroundColor,
-          hoverBackgroundColor: this.pieChartData.datasets[0].hoverBackgroundColor,
-        },
-      ],
-    };
-  }
 
   private handleError(error: any, context: string): void {
     console.error(`Error loading ${context}:`, error);

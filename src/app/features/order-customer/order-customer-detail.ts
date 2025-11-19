@@ -1,94 +1,52 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DecimalPipe } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
-import { NGXLogger } from 'ngx-logger';
-import { CustomerOrderService } from 'src/services/order-customer/order-customer.service';
-import { CustomerCancelOrderRequestDto } from '@dtos/order-customer/CustomerCancelOrder.request.dto';
-import { CustomerOrderDetailResponseDto } from '@dtos/order-customer/CustomerOrderDetail.response';
+import { Component, Inject } from '@angular/core';
+import { CommonModule, DatePipe, DecimalPipe } from '@angular/common';
+import { MAT_DIALOG_DATA, MatDialogRef, MatDialogModule } from '@angular/material/dialog';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+
+// Interface dữ liệu nhận vào (Khớp với logic map ở component cha)
+export interface OrderCustomerDetailDialogData {
+  orderId: number;
+  orderDate: Date;
+  customerName: string;
+  phone: string;
+  shippingAddress: string;
+  status: string;
+  totalAmount: number;
+  paymentMethod: string;        // <--- Mới
+  shippingNote?: string | null; // <--- Mới
+  items: {
+    productName: string;
+    imageUrl: string;
+    variantInfo: string;
+    quantity: number;
+    unitPrice: number;
+  }[];
+}
 
 @Component({
   selector: 'app-order-customer-detail',
-  templateUrl: './order-customer-detail.html',
   standalone: true,
-  imports: [CommonModule, DecimalPipe],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule, DecimalPipe, DatePipe],
+  templateUrl: './order-customer-detail.html',
 })
-export class OrderDetailComponent implements OnInit {
-
-  order: CustomerOrderDetailResponseDto | null = null;
-  isLoading: boolean = false;
-
+export class OrderCustomerDetailDialogComponent {
   constructor(
-    private route: ActivatedRoute,
-    private logger: NGXLogger,
-    private customerOrderService: CustomerOrderService
-  ) { }
+    public dialogRef: MatDialogRef<OrderCustomerDetailDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: OrderCustomerDetailDialogData
+  ) {}
 
-  ngOnInit(): void {
-    const orderId = Number(this.route.snapshot.paramMap.get('id'));
-    if (orderId) {
-      this.loadOrderDetail(orderId);
-    } else {
-      alert('Không tìm thấy ID đơn hàng.');
-    }
+  close(): void {
+    this.dialogRef.close();
   }
 
-  async loadOrderDetail(orderId: number) {
-    this.isLoading = true;
-    try {
-      this.order = await this.customerOrderService.getOrderDetail(orderId);
-      this.logger.debug('Order loaded:', this.order);
-    } catch (error) {
-      console.error(error);
-      alert('Lấy chi tiết đơn hàng thất bại.');
-    } finally {
-      this.isLoading = false;
-    }
-  }
-
-  onCancelOrder(order: CustomerOrderDetailResponseDto) {
-    const status = order.status?.toLowerCase();
-    if (status === 'completed') {
-      alert('Đơn hàng này đã được xác nhận nhận hàng, không thể hủy.');
-      return;
-    }
-
-    const reason = prompt('Vui lòng nhập lý do hủy đơn:', '');
-    if (!reason || reason.trim() === '') {
-      alert('Bạn phải nhập lý do hủy đơn.');
-      return;
-    }
-
-    this.isLoading = true;
-    this.customerOrderService.cancelOrder(order.id, { reason: reason.trim() } as CustomerCancelOrderRequestDto)
-      .then(() => {
-        alert('Hủy đơn thành công!');
-        this.loadOrderDetail(order.id);
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Hủy đơn thất bại');
-      })
-      .finally(() => this.isLoading = false);
-  }
-
-  onConfirmDelivery(order: CustomerOrderDetailResponseDto) {
-    const status = order.status?.toLowerCase();
-
-    if (status !== 'shipped') {
-      alert('Bạn chỉ có thể xác nhận khi đơn hàng ở trạng thái "Shipped".');
-      return;
-    }
-
-    this.isLoading = true;
-    this.customerOrderService.confirmDelivery(order.id)
-      .then(() => {
-        alert('Xác nhận đã nhận hàng thành công!');
-        this.loadOrderDetail(order.id);
-      })
-      .catch(err => {
-        console.error(err);
-        alert('Xác nhận thất bại');
-      })
-      .finally(() => this.isLoading = false);
+  // Helper để chỉnh màu trạng thái
+  getStatusColorClass(status: string): string {
+    const s = status.toLowerCase();
+    if (s.includes('chờ') || s.includes('pending')) return 'bg-orange-100 text-orange-700';
+    if (s.includes('vận chuyển') || s.includes('shipped')) return 'bg-blue-100 text-blue-700';
+    if (s.includes('hoàn tất') || s.includes('completed')) return 'bg-green-100 text-green-700';
+    if (s.includes('hủy') || s.includes('cancel')) return 'bg-red-100 text-red-700';
+    return 'bg-gray-100 text-gray-700';
   }
 }

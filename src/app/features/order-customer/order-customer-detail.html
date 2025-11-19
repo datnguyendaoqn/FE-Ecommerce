@@ -1,84 +1,86 @@
-<div class="container mx-auto max-w-4xl p-4">
-
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="text-center py-20">
-    <p class="text-gray-500">Đang tải đơn hàng...</p>
+<!-- Header: Sticky Top -->
+<div class="flex justify-between items-center border-b pb-3 mb-2" mat-dialog-title>
+  <div class="flex items-center gap-3">
+    <h2 class="text-xl font-bold text-gray-800 m-0">Chi tiết đơn hàng #{{ data.orderId }}</h2>
+    <span
+      class="px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+      [ngClass]="getStatusColorClass(data.status)"
+    >
+      {{ data.status }}
+    </span>
   </div>
+  <button mat-icon-button (click)="close()" class="text-gray-500 hover:text-gray-700">
+    <mat-icon>close</mat-icon>
+  </button>
+</div>
 
-  <!-- Order details -->
-  <div *ngIf="order" class="bg-white rounded-lg shadow p-4 space-y-4">
+<!-- Body: Scrollable -->
+<mat-dialog-content class="!p-0">
+  <div class="p-1 space-y-6">
+    
+    <!-- Section 1: Thông tin chung & Giao hàng -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg border border-gray-100">
+      <!-- Cột Trái: Thời gian -->
+      <div>
+        <p class="text-xs text-gray-500 uppercase font-semibold mb-1">Thời gian đặt hàng</p>
+        <p class="text-gray-800 font-medium">{{ data.orderDate | date:'dd/MM/yyyy HH:mm' }}</p>
+      </div>
 
-    <h2 class="text-xl font-bold">Chi tiết đơn hàng #{{ order.id }}</h2>
-
-    <!-- Status -->
-    <div class="flex justify-between items-center">
-      <span class="font-medium">Trạng thái:</span>
-      <span class="font-bold text-blue-600">{{ order.status }}</span>
-    </div>
-
-    <hr>
-
-    <!-- Shop info -->
-    <div>
-      <p class="font-semibold">Cửa hàng</p>
-      <p>{{ order.shopName }}</p>
-    </div>
-
-    <hr>
-
-    <!-- Products -->
-    <div>
-      <p class="font-semibold mb-2">Sản phẩm</p>
-
-      <div *ngFor="let item of order.items" class="flex space-x-3 border p-3 rounded-md mb-2">
-        <img [src]="item.imageUrl" class="w-20 h-20 rounded-md border object-cover">
-
-        <div class="flex-1">
-          <p class="font-semibold">{{ item.productName }}</p>
-          <p class="text-gray-500 text-sm">{{ item.variantName }}</p>
-          <p class="text-sm">SL: {{ item.quantity }}</p>
-        </div>
-
-        <div class="text-blue-500 font-semibold">{{ item.price | number:'1.0-0' }}₫</div>
+      <!-- Cột Phải: Người nhận -->
+      <div>
+        <p class="text-xs text-gray-500 uppercase font-semibold mb-1">Thông tin người nhận</p>
+        <p class="text-gray-800 font-bold">{{ data.customerName }} <span class="text-gray-400 font-normal">|</span> {{ data.phone }}</p>
+        <p class="text-gray-600 text-sm mt-1 leading-relaxed">{{ data.shippingAddress }}</p>
       </div>
     </div>
 
-    <hr>
-
-    <!-- Shipping address -->
+    <!-- Section 2: Danh sách sản phẩm -->
     <div>
-      <p class="font-semibold">Địa chỉ giao hàng</p>
-      <p>{{ order.shippingName }} | {{ order.shippingPhone }}</p>
-      <p>
-        {{ order.shippingAddressLine }},
-        {{ order.shippingWard }},
-        {{ order.shippingDistrict }},
-        {{ order.shippingCity }}
-      </p>
+      <h3 class="text-sm font-bold text-gray-700 mb-3 uppercase">Sản phẩm ({{ data.items.length }})</h3>
+      <div class="border rounded-lg overflow-hidden">
+        <div *ngFor="let item of data.items; let last = last" 
+             class="flex gap-4 p-4 bg-white hover:bg-gray-50 transition-colors"
+             [class.border-b]="!last">
+          
+          <!-- Ảnh sản phẩm -->
+          <div class="w-16 h-16 flex-shrink-0 border rounded-md overflow-hidden bg-gray-100">
+            <img [src]="item.imageUrl || 'assets/images/default-product.png'" 
+                 class="w-full h-full object-cover" 
+                 alt="Product Image">
+          </div>
+
+          <!-- Thông tin chi tiết -->
+          <div class="flex-1 min-w-0 flex flex-col justify-center">
+            <p class="font-semibold text-gray-800 text-sm truncate" title="{{ item.productName }}">
+              {{ item.productName }}
+            </p>
+            <p class="text-gray-500 text-xs mt-1">{{ item.variantInfo }}</p>
+            <p class="text-gray-500 text-xs mt-1">Số lượng: <span class="font-medium text-gray-800">{{ item.quantity }}</span></p>
+          </div>
+
+          <!-- Giá tiền -->
+          <div class="flex flex-col justify-center items-end">
+            <span class="font-bold text-blue-600 text-sm">{{ item.unitPrice | number:'1.0-0' }}₫</span>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <hr>
-
-    <!-- Total -->
-    <div class="flex justify-between items-center">
-      <span class="text-lg font-semibold">Tổng tiền:</span>
-      <span class="text-2xl text-blue-600 font-bold">{{ order.totalAmount | number:'1.0-0' }}₫</span>
-    </div>
-
-    <!-- Action buttons -->
-    <div class="pt-4 space-x-2">
-      <button *ngIf="order.status === 'PENDING_CONFIRMATION'"
-              class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
-              (click)="onCancelOrder(order!)">
-        Hủy đơn hàng
-      </button>
-
-      <button *ngIf="order.status === 'SHIPPED'"
-              class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
-              (click)="onConfirmDelivery(order!)">
-        Đã nhận hàng
-      </button>
+    <!-- Section 3: Tổng tiền -->
+    <div class="flex flex-col items-end pt-2 border-t">
+      <div class="flex justify-between items-center w-full md:w-1/2 lg:w-1/3">
+        <span class="text-gray-600 font-medium">Tổng tiền thanh toán:</span>
+        <span class="text-2xl font-bold text-red-600">{{ data.totalAmount | number:'1.0-0' }}₫</span>
+      </div>
     </div>
 
   </div>
-</div>
+</mat-dialog-content>
+
+<!-- Footer: Sticky Bottom (Actions) -->
+<mat-dialog-actions align="end" class="border-t pt-3 mt-2 gap-2">
+  <button mat-button (click)="close()" class="text-gray-600">Đóng</button>
+  
+  <!-- Các nút hành động tùy chọn (nếu cần xử lý trực tiếp tại dialog) -->
+  <!-- Ví dụ: Nếu truyền callback vào data, có thể gọi ở đây -->
+</mat-dialog-actions>

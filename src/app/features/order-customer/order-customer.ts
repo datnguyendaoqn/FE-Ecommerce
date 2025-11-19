@@ -9,7 +9,8 @@ import { NGXLogger } from "ngx-logger";
 import { CustomerOrderService } from "src/services/order-customer/order-customer.service";
 import { ToastrService } from 'ngx-toastr';
 import { ReviewDialogComponent, ReviewDialogData } from "@shared/component/ui/review-dialog/review-dialog";
-
+import { OrderCustomerDetailDialogComponent,OrderCustomerDetailDialogData} from "./order-customer-detail";
+import { CustomerOrderDetailApiResponseDto } from "@dtos/order-customer/CustomerOrderDetail.response";
 interface Tab {
   label: string;
   value: string;
@@ -88,6 +89,77 @@ export class OrderCustomerComponent implements OnInit {
     
     return order.items.slice(0, this.DEFAULT_ITEMS_DISPLAY);
   }
+async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
+    try {
+      // FIX LỖI UNDEFINED:
+      // 1. Ép kiểu service sang any để tránh lỗi biên dịch nếu định nghĩa chưa khớp
+      const service = this.orderService as any;
+      let detail: any;
+
+      // 2. Tự động phát hiện hàm nào đang tồn tại trong service
+      if (typeof service.getOrderDetail === 'function') {
+         // Trường hợp dùng Axios Service
+         const res = await service.getOrderDetail(order.id);
+         // Axios thường trả về data trong res.data, hoặc res (nếu interceptor đã xử lý)
+         detail = res?.data || res; 
+      } else if (typeof service.getOrderById === 'function') {
+         // Trường hợp dùng HttpClient Service
+         const res = await service.getOrderById(order.id);
+         detail = res?.data;
+      } else {
+         this.toastr.error('Lỗi cấu hình: Không tìm thấy hàm lấy chi tiết đơn hàng trong Service');
+         return;
+      }
+
+      // 3. QUAN TRỌNG: Kiểm tra detail có dữ liệu không trước khi truy cập thuộc tính
+      if (!detail || !detail.id) { // Kiểm tra thêm detail.id để chắc chắn object hợp lệ
+        this.logger.error('Dữ liệu chi tiết đơn hàng trả về null/undefined', detail);
+        this.toastr.error('Không tìm thấy thông tin chi tiết đơn hàng (Dữ liệu rỗng)', 'Lỗi');
+        return;
+      }
+
+      // 4. Ghép địa chỉ an toàn (kiểm tra null/undefined từng trường)
+      const fullAddress = [
+        detail.shippingAddressLine,
+        detail.shippingWard,
+        detail.shippingDistrict,
+        detail.shippingCity
+      ].filter(part => part && typeof part === 'string' && part.trim() !== '').join(', ');
+
+      const dialogData: OrderCustomerDetailDialogData = {
+        orderId: detail.id,
+        orderDate: detail.createdAt ? new Date(detail.createdAt) : new Date(),
+        customerName: detail.shippingName || 'Khách hàng', 
+        phone: detail.shippingPhone || '',
+        shippingAddress: fullAddress || 'Địa chỉ chưa cập nhật',
+        status: this.getStatusText(detail.status),
+        totalAmount: detail.totalAmount || 0,
+        
+        paymentMethod: detail.paymentMethod,
+        shippingNote: detail.shippingNote,
+
+        items: (detail.items || []).map((item: CustomerOrderItemDto) => ({
+          productName: item.productName,
+          imageUrl: item.imageUrl,
+          variantInfo: item.variantName,
+          quantity: item.quantity,
+          unitPrice: item.price
+        }))
+      };
+
+      this.dialog.open(OrderCustomerDetailDialogComponent, {
+        width: '700px',
+        maxWidth: '95vw',
+        data: dialogData
+      });
+
+    } catch (err) {
+      this.logger.error(err);
+      this.toastr.error('Không thể tải chi tiết đơn hàng', 'Lỗi');
+    }
+  }
+  
+  
 
   // Kiểm tra có cần nút "Xem thêm" không
   shouldShowExpandButton(order: CustomerOrderResponseDto): boolean {
@@ -178,7 +250,6 @@ export class OrderCustomerComponent implements OnInit {
       this.toastr.error('Hủy đơn hàng thất bại', 'Lỗi');
     }
   }
-
   handleBuyAgain(orderId: number) {
     this.toastr.info(`Chức năng mua lại đơn hàng #${orderId} đang được phát triển`, 'Thông báo');
   }

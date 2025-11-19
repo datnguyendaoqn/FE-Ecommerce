@@ -22,8 +22,9 @@ export interface TopProductResponse {
 }
 
 // DTO cho doanh thu theo danh mục (dùng cho biểu đồ tròn).
-export interface CategorySalesResponse {
+export interface CategorySalesResponse  {
   categoryName: string,
+  unitSold: null,
   totalRevenue: number;
 }
 
