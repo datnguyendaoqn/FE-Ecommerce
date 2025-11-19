@@ -12,6 +12,7 @@ import {
   SalesOverTimeResponse,
   TopProductResponse,
 } from '@dtos/dashboard/dashboard.response.dto';
+
 @Component({
   selector: 'app-seller-dashboard',
   standalone: true,
@@ -19,7 +20,6 @@ import {
     CommonModule,
     FormsModule,
     BaseChartDirective,
-    CurrencyPipe,
     DatePipe,
   ],
   providers: [
@@ -53,43 +53,151 @@ export class DashboardComponent implements OnInit {
   public isLoadingRecentOrders = false;
   public errorMessage?: string;
 
-  // Bar chart
+  // Bar chart - Improved styling
   public barChartOptions: ChartConfiguration<'bar'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    scales: { y: { beginAtZero: true, ticks: { color: '#6b7280' } }, x: { ticks: { color: '#6b7280' } } },
-    plugins: { legend: { position: 'top', labels: { color: '#111827' } } },
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          color: '#6b7280',
+          font: { size: 12 }
+        },
+        grid: {
+          color: '#f3f4f6',
+        }
+      },
+      x: {
+        ticks: {
+          color: '#6b7280',
+          font: { size: 11 }
+        },
+        grid: {
+          display: false,
+        }
+      }
+    },
+    plugins: {
+      legend: {
+        position: 'top',
+        labels: {
+          color: '#111827',
+          font: { size: 12, weight: 'bold' },
+          padding: 15,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1f2937',
+        titleColor: '#f9fafb',
+        bodyColor: '#f9fafb',
+        padding: 12,
+        cornerRadius: 8,
+        displayColors: true
+      }
+    }
   };
+
   public barChartData: ChartData<'bar'> = {
     labels: [],
     datasets: [
-      { data: [], label: 'Doanh thu', backgroundColor: '#3b82f6' },
-      { data: [], label: 'Đơn hàng', backgroundColor: '#a855f7' },
+      {
+        data: [],
+        label: 'Doanh thu',
+        backgroundColor: '#3b82f6',
+        borderRadius: 8,
+        borderSkipped: false
+      },
+      {
+        data: [],
+        label: 'Đơn hàng',
+        backgroundColor: '#a855f7',
+        borderRadius: 8,
+        borderSkipped: false
+      },
     ],
   };
 
-  // Pie chart
+  // Pie chart - Improved styling
   public pieChartOptions: ChartConfiguration<'pie'>['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: { legend: { display: true, position: 'top', labels: { color: '#111827' } } },
+    plugins: {
+      legend: {
+        display: true,
+        position: 'right',
+        labels: {
+          color: '#111827',
+          font: { size: 12, weight: 'bold' },
+          padding: 12,
+          usePointStyle: true,
+          pointStyle: 'circle'
+        }
+      },
+      tooltip: {
+        backgroundColor: '#1f2937',
+        titleColor: '#f9fafb',
+        bodyColor: '#f9fafb',
+        padding: 12,
+        cornerRadius: 8
+      }
+    }
   };
+
   public pieChartData: ChartData<'pie'> = {
     labels: [],
     datasets: [
       {
         data: [],
-        backgroundColor: ['#3b82f6', '#ef4444', '#22c55e', '#eab308', '#a855f7', '#f97316'],
-        hoverBackgroundColor: ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#9333ea', '#ea580c'],
+        backgroundColor: [
+          '#3b82f6', // blue
+          '#ef4444', // red
+          '#22c55e', // green
+          '#eab308', // yellow
+          '#a855f7', // purple
+          '#f97316', // orange
+          '#06b6d4', // cyan
+          '#ec4899'  // pink
+        ],
+        hoverBackgroundColor: [
+          '#2563eb',
+          '#dc2626',
+          '#16a34a',
+          '#d97706',
+          '#9333ea',
+          '#ea580c',
+          '#0891b2',
+          '#db2777'
+        ],
+        borderWidth: 0
       },
     ],
   };
+
   private updateBarChart(data: SalesOverTimeResponse[]): void {
     this.barChartData = {
-      labels: data.map(d => d.date),
+      labels: data.map(d => {
+        // Format date nicely
+        const date = new Date(d.date);
+        return this.datePipe.transform(date, 'dd/MM') || d.date;
+      }),
       datasets: [
-        { data: data.map(d => d.revenue), label: 'Doanh thu', backgroundColor: '#3b82f6' },
-        { data: data.map(d => d.orderCount), label: 'Đơn hàng', backgroundColor: '#a855f7' },
+        {
+          data: data.map(d => d.revenue),
+          label: 'Doanh thu',
+          backgroundColor: '#3b82f6',
+          borderRadius: 8,
+          borderSkipped: false
+        },
+        {
+          data: data.map(d => d.orderCount),
+          label: 'Đơn hàng',
+          backgroundColor: '#a855f7',
+          borderRadius: 8,
+          borderSkipped: false
+        },
       ],
     };
   }
@@ -103,10 +211,12 @@ export class DashboardComponent implements OnInit {
           label: 'Doanh thu',
           backgroundColor: this.pieChartData.datasets[0].backgroundColor,
           hoverBackgroundColor: this.pieChartData.datasets[0].hoverBackgroundColor,
+          borderWidth: 0
         },
       ],
     };
   }
+
   constructor() {
     const today = new Date();
     const thirtyDaysAgo = new Date();
@@ -115,6 +225,7 @@ export class DashboardComponent implements OnInit {
     this.toDate = this.formatDateForInput(today);
     this.fromDate = this.formatDateForInput(thirtyDaysAgo);
   }
+
   ngOnInit(): void {
     this.loadAllDashboardData();
   }
@@ -156,7 +267,6 @@ export class DashboardComponent implements OnInit {
   async loadSalesOverTime(from: string, to: string): Promise<void> {
     this.isLoadingSalesOverTime = true;
     try {
-      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getSalesOverTime({ from, to });
       this.updateBarChart(data);
     } catch (err) {
@@ -169,7 +279,6 @@ export class DashboardComponent implements OnInit {
   async loadTopProducts(from: string, to: string, topN: number): Promise<void> {
     this.isLoadingTopProducts = true;
     try {
-      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getTopProducts({ from, to, topN });
       this.topProducts = data;
     } catch (err) {
@@ -182,7 +291,6 @@ export class DashboardComponent implements OnInit {
   async loadSalesByCategory(from: string, to: string): Promise<void> {
     this.isLoadingCategorySales = true;
     try {
-      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getCategorySales({ from, to });
       this.updatePieChart(data);
     } catch (err) {
@@ -195,7 +303,6 @@ export class DashboardComponent implements OnInit {
   async loadRecentOrders(count: number): Promise<void> {
     this.isLoadingRecentOrders = true;
     try {
-      // DÙNG AWAIT ĐỂ LẤY DỮ LIỆU
       const data = await this.dashboardService.getRecentOrders({ count });
       this.recentOrders = data;
     } catch (err) {
@@ -204,7 +311,6 @@ export class DashboardComponent implements OnInit {
       this.isLoadingRecentOrders = false;
     }
   }
-
 
   private handleError(error: any, context: string): void {
     console.error(`Error loading ${context}:`, error);

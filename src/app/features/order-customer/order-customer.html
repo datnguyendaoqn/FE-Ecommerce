@@ -20,9 +20,19 @@
   <div class="bg-white p-3 sm:p-4 rounded-b-lg mb-4 shadow-sm">
     <div class="relative">
       <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
-        <!-- Icon Search SVG -->
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="w-5 h-5"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+          />
         </svg>
       </span>
       <input
@@ -40,8 +50,19 @@
     <!-- Loading -->
     <div *ngIf="isLoading" class="flex justify-center items-center h-64">
       <svg class="animate-spin h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        <circle
+          class="opacity-25"
+          cx="12"
+          cy="12"
+          r="10"
+          stroke="currentColor"
+          stroke-width="4"
+        ></circle>
+        <path
+          class="opacity-75"
+          fill="currentColor"
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        ></path>
       </svg>
     </div>
 
@@ -50,16 +71,20 @@
       <p class="text-gray-500 mt-2">Chưa có đơn hàng nào trong mục này.</p>
     </div>
 
-    <!-- Order Card Loop -->
+    <!-- Order Card Loop - Sử dụng paginatedOrders() thay vì filteredOrders() -->
     <div
-      *ngFor="let order of filteredOrders()"
+      *ngFor="let order of paginatedOrders()"
       class="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow cursor-pointer group"
       (click)="openCustomerDetailDialog(order)"
     >
       <!-- Header -->
-      <header class="p-3 sm:p-4 border-b flex justify-between items-center bg-gray-50 group-hover:bg-gray-100 transition-colors">
+      <header
+        class="p-3 sm:p-4 border-b flex justify-between items-center bg-gray-50 group-hover:bg-gray-100 transition-colors"
+      >
         <div class="flex items-center space-x-2">
-          <span class="font-semibold text-sm sm:text-base text-gray-800">{{ order?.shopName }}</span>
+          <span class="font-semibold text-sm sm:text-base text-gray-800">{{
+            order?.shopName
+          }}</span>
           <span class="text-gray-400 text-xs">|</span>
           <span class="text-xs text-gray-500">#{{ order?.id }}</span>
         </div>
@@ -88,7 +113,9 @@
             class="w-20 h-20 object-cover rounded-md border flex-shrink-0"
           />
           <div class="flex-1 min-w-0">
-            <p class="font-semibold text-sm sm:text-base truncate text-gray-800">{{ item?.productName }}</p>
+            <p class="font-semibold text-sm sm:text-base truncate text-gray-800">
+              {{ item?.productName }}
+            </p>
             <p class="text-sm text-gray-500 truncate mt-1">{{ item?.variantName }}</p>
             <p class="text-sm text-gray-600 mt-1">x{{ item?.quantity }}</p>
           </div>
@@ -98,12 +125,9 @@
             </div>
           </div>
         </div>
-        
-        <!-- Nút đánh giá nằm dưới sản phẩm -->
-        <div 
-          *ngIf="order?.status?.toLowerCase() === 'completed'"
-          class="mt-3 flex justify-end"
-        >
+
+        <!-- Nút đánh giá -->
+        <div *ngIf="order?.status?.toLowerCase() === 'completed'" class="mt-3 flex justify-end">
           <button
             (click)="$event.stopPropagation(); handleReviewItem(order, item)"
             class="bg-white border border-blue-500 text-blue-600 px-4 py-1.5 rounded-md hover:bg-blue-50 text-sm font-medium transition-colors"
@@ -113,11 +137,8 @@
         </div>
       </div>
 
-      <!-- NÚT XEM THÊM / THU GỌN -->
-      <div 
-        *ngIf="shouldShowExpandButton(order)"
-        class="px-3 sm:px-4 py-2 border-b bg-white"
-      >
+      <!-- Nút Xem thêm / Thu gọn -->
+      <div *ngIf="shouldShowExpandButton(order)" class="px-3 sm:px-4 py-2 border-b bg-white">
         <button
           (click)="$event.stopPropagation(); toggleExpandOrder(order.id)"
           class="w-full flex items-center justify-center space-x-2 text-blue-600 hover:text-blue-700 font-medium text-sm py-2 transition-colors"
@@ -126,16 +147,20 @@
             Xem thêm {{ getRemainingItemsCount(order) }} sản phẩm
           </span>
           <span *ngIf="isOrderExpanded(order.id)">Thu gọn</span>
-          
-          <!-- Icon mũi tên -->
-          <svg 
+
+          <svg
             class="w-4 h-4 transition-transform duration-200"
             [ngClass]="{ 'rotate-180': isOrderExpanded(order.id) }"
-            fill="none" 
-            stroke="currentColor" 
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M19 9l-7 7-7-7"
+            ></path>
           </svg>
         </button>
       </div>
@@ -160,13 +185,16 @@
           </button>
           <button
             *ngIf="order?.status?.toLowerCase() === 'pending'"
-            (click)="$event.stopPropagation(); cancelOrder(order)"
+            (click)="$event.stopPropagation(); openCancelOrderDialog(order)"
             class="bg-white border border-red-300 text-red-600 px-4 py-2 rounded-md hover:bg-red-50 text-sm font-medium transition-colors"
           >
             Hủy đơn hàng
           </button>
           <button
-            *ngIf="order?.status?.toLowerCase() === 'cancelled' || order?.status?.toLowerCase() === 'completed'"
+            *ngIf="
+              order?.status?.toLowerCase() === 'cancelled' ||
+              order?.status?.toLowerCase() === 'completed'
+            "
             (click)="$event.stopPropagation(); handleBuyAgain(order.id)"
             class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 text-sm font-medium shadow-sm transition-colors"
           >
@@ -174,6 +202,110 @@
           </button>
         </div>
       </footer>
+    </div>
+
+    <!-- PHÂN TRANG -->
+    <div
+      *ngIf="!isLoading && filteredOrders().length > 0"
+      class="bg-white rounded-lg shadow-sm p-4 mt-6"
+    >
+      <div class="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0">
+        <!-- Thông tin trang -->
+        <div class="text-sm text-gray-600">
+          Hiển thị
+          <span class="font-semibold">{{ (currentPage - 1) * pageSize + 1 }}</span>
+          -
+          <span class="font-semibold">{{ showingCount }}</span>
+          trong tổng số
+          <span class="font-semibold">{{ filteredOrders().length }}</span>
+          đơn hàng
+        </div>
+
+        <!-- Điều hướng phân trang -->
+        <div class="flex items-center space-x-1">
+          <!-- Nút Previous -->
+          <button
+            (click)="previousPage()"
+            [disabled]="currentPage === 1"
+            [ngClass]="{
+              'opacity-50 cursor-not-allowed': currentPage === 1,
+              'hover:bg-gray-100': currentPage > 1
+            }"
+            class="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M15 19l-7-7 7-7"
+              ></path>
+            </svg>
+          </button>
+
+          <!-- Số trang đầu tiên (nếu cần) -->
+          <button
+            *ngIf="getPageNumbers()[0] > 1"
+            (click)="goToPage(1)"
+            class="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            1
+          </button>
+
+          <!-- Dấu ... đầu -->
+          <span *ngIf="getPageNumbers()[0] > 2" class="px-2 text-gray-500"> ... </span>
+
+          <!-- Các số trang -->
+          <button
+            *ngFor="let page of getPageNumbers()"
+            (click)="goToPage(page)"
+            [ngClass]="{
+              'bg-blue-600 text-white border-blue-600': currentPage === page,
+              'text-gray-700 border-gray-300 hover:bg-gray-100': currentPage !== page
+            }"
+            class="px-3 py-2 rounded-md border text-sm font-medium transition-colors min-w-[40px]"
+          >
+            {{ page }}
+          </button>
+
+          <!-- Dấu ... cuối -->
+          <span
+            *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages - 1"
+            class="px-2 text-gray-500"
+          >
+            ...
+          </span>
+
+          <!-- Số trang cuối cùng (nếu cần) -->
+          <button
+            *ngIf="getPageNumbers()[getPageNumbers().length - 1] < totalPages"
+            (click)="goToPage(totalPages)"
+            class="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+          >
+            {{ totalPages }}
+          </button>
+
+          <!-- Nút Next -->
+          <button
+            (click)="nextPage()"
+            [disabled]="currentPage === totalPages"
+            [ngClass]="{
+              'opacity-50 cursor-not-allowed': currentPage === totalPages,
+              'hover:bg-gray-100': currentPage < totalPages
+            }"
+            class="px-3 py-2 rounded-md border border-gray-300 text-sm font-medium text-gray-700 transition-colors"
+          >
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9 5l7 7-7 7"
+              ></path>
+            </svg>
+          </button>
+        </div>
+      </div>
     </div>
   </main>
 </div>

@@ -6,7 +6,6 @@ import { ProductDetailDto, ProductVariantDetailDto } from '@dtos/product/product
 import { ProductCardComponent } from '@shared/component/ui/product/product';
 import { MatIcon } from '@angular/material/icon';
 import { ReviewResponseDto } from '@dtos/review/review';
-import { reviewMocks } from 'src/data/review.data';
 import { ProductService } from 'src/services/product/product.service';
 import { productDetailMocks, productsMock } from 'src/data/product.data';
 import { CartRequestDto } from '@dtos/cart/cart.request.dto';
@@ -50,7 +49,6 @@ export class ProductDetailComponent implements OnInit {
   ngOnInit(): void {
     this.route.paramMap.subscribe(async params => {
       const productId = Number(params.get('id'));
-
       this.isLoading = true;
 
       try {
@@ -75,38 +73,34 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
-
-
   private loadMockData(): void {
     console.log('Loading mock data...');
     this.product = productDetailMocks.data;
   }
 
   private async initializeProductData(): Promise<void> {
-    // Kiểm tra product có tồn tại và có variants
     if (!this.product || !this.product.variants || this.product.variants.length === 0) {
       this.isLoading = false;
       return;
     }
-    // Chọn biến thể đầu tiên (có thể filter chỉ lấy variant còn hàng)
+
+    // Chọn biến thể đầu tiên có sẵn hàng
     this.selectedVariant = this.product.variants.find(v => v.isInStock) || this.product.variants[0];
 
-    // === Giữ relatedProducts từ API, chỉ fallback nếu rỗng hoặc API lỗi ===
+    // Fallback cho related products
     if (!this.relatedProducts || this.relatedProducts.length === 0) {
       this.relatedProducts = productsMock;
     }
 
-    // Lấy review
+    // Lấy reviews
     try {
       const apiReviews = await this.productService.getReviewProduct(this.product.id);
-
       this.reviews = apiReviews?.data ?? [];
-
     } catch {
-      // API lỗi => coi như không có review
       this.reviews = [];
     }
-    // Tính rating trung bình
+
+    // Tính rating
     this.reviewCount = this.reviews.length;
     this.averageRating =
       this.reviewCount > 0
@@ -138,16 +132,7 @@ export class ProductDetailComponent implements OnInit {
 
     const imageSet = new Set<string>();
 
-    // // 1. Thêm ảnh từ productImages
-    // if (this.product.productImages && this.product.productImages.length > 0) {
-    //   this.product.productImages.forEach(img => {
-    //     if (img.imageUrl) {
-    //       imageSet.add(img.imageUrl);
-    //     }
-    //   });
-    // }
-
-    // 2. Thêm ảnh từ primaryImage của các variants
+    // Thêm ảnh từ variants
     if (this.product.variants && this.product.variants.length > 0) {
       this.product.variants.forEach(variant => {
         if (variant.primaryImage?.imageUrl) {
@@ -160,7 +145,7 @@ export class ProductDetailComponent implements OnInit {
   }
 
   get originalPrice(): number {
-    return this.selectedVariant?.price ? this.selectedVariant.price * 1.25 : 0;
+    return this.selectedVariant?.price ? Math.round(this.selectedVariant.price * 1.25) : 0;
   }
 
   // ==== HANDLERS ====
@@ -169,16 +154,25 @@ export class ProductDetailComponent implements OnInit {
     this.selectedVariant = v;
   }
 
+  onSelectVariantByImage(index: number): void {
+    // Chọn variant dựa trên index của gallery image
+    if (this.product.variants && this.product.variants[index]) {
+      this.selectedVariant = this.product.variants[index];
+    }
+  }
+
   toggleDescription(): void {
     this.isDescriptionExpanded = !this.isDescriptionExpanded;
   }
 
+  setActiveTab(tab: string): void {
+    this.activeTab = tab;
+  }
+
   async addToCart(): Promise<void> {
-    // Kiểm tra đăng nhập trước
     const user = this.helperService.getInforUser();
 
     if (!user) {
-      // Hiển thị dialog yêu cầu đăng nhập
       this.dialog.open(LoginDialogComponent, {
         width: '450px',
         maxWidth: '90vw',
@@ -186,17 +180,14 @@ export class ProductDetailComponent implements OnInit {
         disableClose: false,
         autoFocus: true
       });
-
       return;
     }
 
-    // Kiểm tra hàng có sẵn không
     if (!this.selectedVariant?.isInStock) {
       this.toast.warning('Sản phẩm này hiện đã hết hàng', 'Cảnh báo');
       return;
     }
 
-    // Tạo item để thêm vào giỏ
     const item: CartRequestDto = {
       productVariantId: this.selectedVariant.id,
       quantity: 1
@@ -204,7 +195,6 @@ export class ProductDetailComponent implements OnInit {
 
     try {
       await this.cartService.createCartItem(item);
-      // Chuyển sang /cart sau khi API thêm xong
       this.router.navigate(['/cart']);
       this.toast.success("Đã thêm vào giỏ hàng", "Thành công");
       this.store.dispatch(addCart());
@@ -214,7 +204,6 @@ export class ProductDetailComponent implements OnInit {
   }
 
   onAddToFavorite(p: ProductSummaryDto | ProductDetailDto): void {
-    // Có thể thêm check đăng nhập cho favorite nếu cần
     const user = this.helperService.getInforUser();
 
     if (!user) {
@@ -228,9 +217,5 @@ export class ProductDetailComponent implements OnInit {
     }
 
     this.toast.info(`Đã thêm "${p.name}" vào danh sách yêu thích!`, 'Yêu thích');
-  }
-
-  setActiveTab(tab: string): void {
-    this.activeTab = tab;
   }
 }

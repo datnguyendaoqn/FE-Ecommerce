@@ -9,8 +9,9 @@ import { NGXLogger } from "ngx-logger";
 import { CustomerOrderService } from "src/services/order-customer/order-customer.service";
 import { ToastrService } from 'ngx-toastr';
 import { ReviewDialogComponent, ReviewDialogData } from "@shared/component/ui/review-dialog/review-dialog";
-import { OrderCustomerDetailDialogComponent,OrderCustomerDetailDialogData} from "./order-customer-detail";
-import { CustomerOrderDetailApiResponseDto } from "@dtos/order-customer/CustomerOrderDetail.response";
+import { OrderCustomerDetailDialogComponent, OrderCustomerDetailDialogData } from "./order-customer-detail";
+import { CancelOrderDialogComponent } from "./order-customer-dialog";
+
 interface Tab {
   label: string;
   value: string;
@@ -28,12 +29,17 @@ export class OrderCustomerComponent implements OnInit {
   isLoading: boolean = false;
   searchTerm: string = '';
   activeTab: string = 'pending';
-  
+
   // Track expanded orders
   expandedOrders: Set<number> = new Set();
-  
+
   // Số sản phẩm hiển thị mặc định
   readonly DEFAULT_ITEMS_DISPLAY = 2;
+
+  // Phân trang
+  currentPage: number = 1;
+  pageSize: number = 3;
+  totalPages: number = 0;
 
   tabs: Tab[] = [
     { label: 'Chờ xác nhận', value: 'pending' },
@@ -58,6 +64,7 @@ export class OrderCustomerComponent implements OnInit {
     try {
       const res = await this.orderService.getMyOrders();
       this.orders = res.data.items || [];
+      this.updatePagination();
     } catch (err) {
       this.logger.error(err);
       this.toastr.error('Tải danh sách đơn hàng thất bại', 'Lỗi');
@@ -77,48 +84,117 @@ export class OrderCustomerComponent implements OnInit {
       );
   }
 
+  // Lấy danh sách đơn hàng theo trang hiện tại
+  paginatedOrders(): CustomerOrderResponseDto[] {
+    const filtered = this.filteredOrders();
+    const startIndex = (this.currentPage - 1) * this.pageSize;
+    const endIndex = startIndex + this.pageSize;
+    return filtered.slice(startIndex, endIndex);
+  }
+
+  // Cập nhật thông tin phân trang
+  updatePagination(): void {
+    const totalItems = this.filteredOrders().length;
+    this.totalPages = Math.ceil(totalItems / this.pageSize);
+
+    // Đảm bảo currentPage không vượt quá totalPages
+    if (this.currentPage > this.totalPages && this.totalPages > 0) {
+      this.currentPage = this.totalPages;
+    }
+    if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+  }
+
+  // Chuyển trang
+  goToPage(page: number): void {
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page;
+      // Scroll to top khi chuyển trang
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
+  // Trang trước
+  previousPage(): void {
+    if (this.currentPage > 1) {
+      this.goToPage(this.currentPage - 1);
+    }
+  }
+
+  // Trang sau
+  nextPage(): void {
+    if (this.currentPage < this.totalPages) {
+      this.goToPage(this.currentPage + 1);
+    }
+  }
+
+  // Lấy array số trang để hiển thị
+  getPageNumbers(): number[] {
+    const pages: number[] = [];
+    const maxPagesToShow = 5;
+
+    if (this.totalPages <= maxPagesToShow) {
+      // Hiển thị tất cả nếu <= 5 trang
+      for (let i = 1; i <= this.totalPages; i++) {
+        pages.push(i);
+      }
+    } else {
+      // Logic hiển thị với dấu ...
+      let startPage = Math.max(1, this.currentPage - 2);
+      let endPage = Math.min(this.totalPages, this.currentPage + 2);
+
+      if (this.currentPage <= 3) {
+        endPage = maxPagesToShow;
+      }
+
+      if (this.currentPage >= this.totalPages - 2) {
+        startPage = this.totalPages - maxPagesToShow + 1;
+      }
+
+      for (let i = startPage; i <= endPage; i++) {
+        pages.push(i);
+      }
+    }
+
+    return pages;
+  }
+
   // Lấy danh sách item hiển thị (có thể bị giới hạn)
   getDisplayedItems(order: CustomerOrderResponseDto): CustomerOrderItemDto[] {
     if (!order.items) return [];
-    
+
     const isExpanded = this.expandedOrders.has(order.id);
-    
+
     if (isExpanded || order.items.length <= this.DEFAULT_ITEMS_DISPLAY) {
       return order.items;
     }
-    
+
     return order.items.slice(0, this.DEFAULT_ITEMS_DISPLAY);
   }
-async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
+
+  async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
     try {
-      // FIX LỖI UNDEFINED:
-      // 1. Ép kiểu service sang any để tránh lỗi biên dịch nếu định nghĩa chưa khớp
       const service = this.orderService as any;
       let detail: any;
 
-      // 2. Tự động phát hiện hàm nào đang tồn tại trong service
       if (typeof service.getOrderDetail === 'function') {
-         // Trường hợp dùng Axios Service
-         const res = await service.getOrderDetail(order.id);
-         // Axios thường trả về data trong res.data, hoặc res (nếu interceptor đã xử lý)
-         detail = res?.data || res; 
+        const res = await service.getOrderDetail(order.id);
+        detail = res?.data || res;
       } else if (typeof service.getOrderById === 'function') {
-         // Trường hợp dùng HttpClient Service
-         const res = await service.getOrderById(order.id);
-         detail = res?.data;
+        const res = await service.getOrderById(order.id);
+        detail = res?.data;
       } else {
-         this.toastr.error('Lỗi cấu hình: Không tìm thấy hàm lấy chi tiết đơn hàng trong Service');
-         return;
+        this.toastr.error('Lỗi cấu hình: Không tìm thấy hàm lấy chi tiết đơn hàng trong Service');
+        return;
       }
 
-      // 3. QUAN TRỌNG: Kiểm tra detail có dữ liệu không trước khi truy cập thuộc tính
-      if (!detail || !detail.id) { // Kiểm tra thêm detail.id để chắc chắn object hợp lệ
+      if (!detail || !detail.id) {
         this.logger.error('Dữ liệu chi tiết đơn hàng trả về null/undefined', detail);
         this.toastr.error('Không tìm thấy thông tin chi tiết đơn hàng (Dữ liệu rỗng)', 'Lỗi');
         return;
       }
 
-      // 4. Ghép địa chỉ an toàn (kiểm tra null/undefined từng trường)
       const fullAddress = [
         detail.shippingAddressLine,
         detail.shippingWard,
@@ -129,12 +205,12 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
       const dialogData: OrderCustomerDetailDialogData = {
         orderId: detail.id,
         orderDate: detail.createdAt ? new Date(detail.createdAt) : new Date(),
-        customerName: detail.shippingName || 'Khách hàng', 
+        customerName: detail.shippingName || 'Khách hàng',
         phone: detail.shippingPhone || '',
         shippingAddress: fullAddress || 'Địa chỉ chưa cập nhật',
         status: this.getStatusText(detail.status),
         totalAmount: detail.totalAmount || 0,
-        
+
         paymentMethod: detail.paymentMethod,
         shippingNote: detail.shippingNote,
 
@@ -158,15 +234,11 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
       this.toastr.error('Không thể tải chi tiết đơn hàng', 'Lỗi');
     }
   }
-  
-  
 
-  // Kiểm tra có cần nút "Xem thêm" không
   shouldShowExpandButton(order: CustomerOrderResponseDto): boolean {
     return order.items && order.items.length > this.DEFAULT_ITEMS_DISPLAY;
   }
 
-  // Toggle expand/collapse
   toggleExpandOrder(orderId: number): void {
     if (this.expandedOrders.has(orderId)) {
       this.expandedOrders.delete(orderId);
@@ -175,12 +247,10 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
     }
   }
 
-  // Kiểm tra order có đang expand không
   isOrderExpanded(orderId: number): boolean {
     return this.expandedOrders.has(orderId);
   }
 
-  // Đếm số sản phẩm còn lại
   getRemainingItemsCount(order: CustomerOrderResponseDto): number {
     if (!order.items) return 0;
     return order.items.length - this.DEFAULT_ITEMS_DISPLAY;
@@ -188,6 +258,8 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
 
   setActiveTab(tabValue: string) {
     this.activeTab = tabValue;
+    this.currentPage = 1; // Reset về trang 1 khi đổi tab
+    this.updatePagination();
   }
 
   getStatusText(status?: string): string {
@@ -250,6 +322,7 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
       this.toastr.error('Hủy đơn hàng thất bại', 'Lỗi');
     }
   }
+
   handleBuyAgain(orderId: number) {
     this.toastr.info(`Chức năng mua lại đơn hàng #${orderId} đang được phát triển`, 'Thông báo');
   }
@@ -260,5 +333,42 @@ async openCustomerDetailDialog(order: CustomerOrderResponseDto) {
 
   onSearchChange(value: string) {
     this.searchTerm = value;
+    this.currentPage = 1; // Reset về trang 1 khi tìm kiếm
+    this.updatePagination();
   }
+
+  openCancelOrderDialog(order: CustomerOrderResponseDto) {
+    const dialogRef = this.dialog.open(CancelOrderDialogComponent, {
+      width: '500px',
+      maxWidth: '95vw',
+      data: {
+        orderId: order.id,
+        shopName: order.shopName
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(async (result) => {
+      // result: CancelOrderDialogResult
+      if (result?.confirmed) {
+        const cancelReq: CustomerCancelOrderRequestDto = {
+          Reason: result.reason || ''
+        };
+
+        try {
+          await this.orderService.cancelOrder(order.id, cancelReq);
+          this.toastr.success('Hủy đơn hàng thành công', 'Thành công');
+          this.loadOrders();
+        } catch (err) {
+          this.logger.error(err);
+          this.toastr.error('Hủy đơn hàng thất bại', 'Lỗi');
+        }
+      }
+    });
+  }
+
+
+  get showingCount() {
+    return Math.min(this.currentPage * this.pageSize, this.filteredOrders().length);
+  }
+
 }
