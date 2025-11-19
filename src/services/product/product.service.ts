@@ -31,4 +31,13 @@ export class ProductService extends BaseApiService<ProductSummaryDto, ProductSum
             throw this.helper.ThrowError(error);
         }
     }
+
+    async getTop5Product(): Promise<ProductSummaryDto[]> {
+        try {
+            const res = await axiosInstance.get(`${this.endpoint}/featured-bestsellers`);
+            return res.data.data;
+        } catch (error) {
+            throw this.helper.ThrowError(error);
+        }
+    }
 }

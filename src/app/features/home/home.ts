@@ -232,16 +232,12 @@ export class HomeComponent implements OnInit {
         SortBy: "popular"
       };
 
-      const data = await this.productService.getPagination(1, 5, filter);
+      const data = await this.productService.getTop5Product();
 
       this.logger.info('Top 5 products API response', data);
 
-      if (data && data.data && data.data.items) {
-        this.top5Products = data.data.items;
-      } else if (data && Array.isArray(data)) {
-        this.top5Products = data.slice(0, 5);
-      } else if (data && data.data.items) {
-        this.top5Products = data.data.items.slice(0, 5);
+      if (data) {
+        this.top5Products = data;
       } else {
         throw new Error('Invalid API response for top 5 products');
       }
@@ -337,7 +333,7 @@ export class HomeComponent implements OnInit {
 
     this.logger.info('Changing page', { from: this.page, to: p });
     this.page = p;
-    
+
     // Gọi lại API với page mới
     await this.fetchProducts();
   }
